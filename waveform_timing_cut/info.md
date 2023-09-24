@@ -1,1 +1,1 @@
-
+This folder contains all the code regarding the timing cuts that can be applied to the data (could be sims or expt). The main goal of timing cut is to select runs (or data within each runs) that has same/almost-same starting point (in time) of the waveform.
