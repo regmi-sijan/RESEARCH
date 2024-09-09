@@ -1,0 +1,1 @@
+This section (folder) contains code used for Eta Meson Analysis. We also use it to reconstruct the background via event mixing. As of Sept 9, 2024, we are still working on to get background via position / momentum swapping and have not yet updated here.
