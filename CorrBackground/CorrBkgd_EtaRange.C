@@ -22,40 +22,53 @@
 #include <algorithm>
 
 // Constant parameters defined at the beginning
-const char* INPUT_FILE_NAME = "new_input.root";
-const char* OUTPUT_FILE_NAME = "b_output.root";
+const char* INPUT_FILE_NAME = "input.root";
+const char* OUTPUT_FILE_NAME = "output.root";
 const char* HISTOGRAM_F_NAME = "DelR_pairpT_f";
 const char* HISTOGRAM_B_NAME = "DelR_pairpT_b";
 const char* INV_MASS_HIST_NAME = "pairInvMassPtdelR";
 const char* INV_MASS_BKGD_HIST_NAME = "pairInvMassPtdelRBkgd";
+    
 
-// this parms are used to fit pol to find the peak location 
-const double FIT_delR_MIN = 0.025;     
-const double FIT_delR_MAX = 0.9;      
-
-// this is exclusively designed to have initial parms for fitting (after excluding bins)
-const double EXTRAP_delR_MIN = 0.02;  
-const double EXTRAP_delR_MAX = 1.0;   
+// following range is used for both identifying peak (caused exclusively by pi0) and also for extrapolating (after excluding few/many bins)
+const double RANGE_delR_MIN = 0.02;  
+const double RANGE_delR_MAX = 1.0;   
 
 // working pairpT range for our analysis
 const double pairpT_MIN = 1.8;  
 const double pairpT_MAX = 18.0;
 
+// range to scale bg to match fg
+const double MASS_RANGE_MIN = 0.9;  
+const double MASS_RANGE_MAX = 1.8;
+
 
 // Predefined ranges for pairpT projection
 const double pairpT_RANGES[][2] = {
     {0.0, 2.0},
-    {2.0, 2.5},
-    {2.5, 3.0},
-    {3.0, 3.5},
-    {3.5, 4.0},
-    {4.0, 4.5},
-    {4.5, 5.0},
-    {5.0, 5.5},
-    {5.5, 6.5},
-    {6.5, 7.5},
-    {7.5, 10.0},
-    {10.0, 18.0}
+    {2.0, 2.2},
+    {2.2, 2.4},
+    {2.4, 2.6},
+    {2.6, 2.8},
+    {2.8, 3.0},
+    {3.0, 3.3},
+    {3.3, 3.6},
+    {3.6, 3.9},
+    {3.9, 4.2},
+    {4.2, 4.5},
+    {4.5, 4.8},
+    {4.8, 5.1},
+    {5.1, 5.4},
+    {5.4, 5.7},
+    {5.7, 6.0},
+    {6.0, 6.3},
+    {6.3, 6.6},
+    {6.6, 6.9},
+    {6.9, 7.2},
+    {7.2, 7.5},
+    {7.5, 8.0},
+    {8.0, 9.0},
+    {9.0, 18.0}
 };
 
 // size of the tuples defined earlier
@@ -102,16 +115,16 @@ std::pair<double, double> IdentifyPeakRange(TH1D* proj, double pT1, double pT2) 
 		// we are trying to find the peak in delR distribution
     // Define polynomial fit functions (pol1, pol2, pol3)
     TF1* fits[3];
-    fits[0] = new TF1("pol1", "pol1", FIT_delR_MIN, FIT_delR_MAX);
-    fits[1] = new TF1("pol2", "pol2", FIT_delR_MIN, FIT_delR_MAX);
-    fits[2] = new TF1("pol3", "pol3", FIT_delR_MIN, FIT_delR_MAX);
+    fits[0] = new TF1("pol1", "pol1", RANGE_delR_MIN, RANGE_delR_MAX);
+    fits[1] = new TF1("pol2", "pol2", RANGE_delR_MIN, RANGE_delR_MAX);
+    fits[2] = new TF1("pol3", "pol3", RANGE_delR_MIN, RANGE_delR_MAX);
 
     // Perform polynomial fits and select the best one based on Chi-square/NDF
     double bestChi2NDF = 1e30;
     TF1* bestFit = nullptr;
 
     for (int i = 0; i < 3; ++i) {
-        proj->Fit(fits[i], "RQ", "", FIT_delR_MIN, FIT_delR_MAX);
+        proj->Fit(fits[i], "RQ", "", RANGE_delR_MIN, RANGE_delR_MAX);
         double chi2NDF = fits[i]->GetChisquare() / fits[i]->GetNDF();
         if (chi2NDF < bestChi2NDF) {
             bestChi2NDF = chi2NDF;
@@ -119,14 +132,14 @@ std::pair<double, double> IdentifyPeakRange(TH1D* proj, double pT1, double pT2) 
         }
     }
     
-		// Subtract the background and retain only the range EXTRAP_delR_MIN to EXTRAP_delR_MAX
+		// Subtract the background and retain only the range RANGE_delR_MIN to RANGE_delR_MAX
 		double _xmin =  proj->GetXaxis()->GetXmin();
 		double _xmax =  proj->GetXaxis()->GetXmax();
 
     TH1F* subtractedHist = new TH1F(Form("subtracted_bin_%.2f_%.2f", pT1, pT2), "", proj->GetNbinsX(), _xmin, _xmax);
     for (int i = 1; i <= proj->GetNbinsX(); ++i) {
         double x = proj->GetBinCenter(i);
-        if (x >= EXTRAP_delR_MIN && x <= EXTRAP_delR_MAX) {
+        if (x >= RANGE_delR_MIN && x <= RANGE_delR_MAX) {
             double bgValue = bestFit->Eval(x);
             subtractedHist->SetBinContent(i, proj->GetBinContent(i) - bgValue);
          } 
@@ -235,7 +248,7 @@ TH1D* extrapolateIgnoredBins(TH1D* proj_f, double rangeMin, double rangeMax, dou
 
     // Find the bin numbers corresponding to rangeMin and rangeMax for pi0 peak
 		int TotalBins = proj_f->GetNbinsX();	
-		int FinalBin = proj_f->FindBin(EXTRAP_delR_MAX);
+		int FinalBin = proj_f->FindBin(RANGE_delR_MAX);
     
 		// we will ignore bins from a1 to a2 for both eta meson and pi0
     double a1 = rangeMin;
@@ -261,12 +274,12 @@ TH1D* extrapolateIgnoredBins(TH1D* proj_f, double rangeMin, double rangeMax, dou
 		  
 		// Prepare for fitting polynomials using the updated newRangeMinBin and bins from rangeMax to 0.8
     TF1* polFits[6];
-    polFits[0] = new TF1("pol0", "pol0", proj_f->GetBinCenter(newRangeMinBin), EXTRAP_delR_MAX);
-    polFits[1] = new TF1("pol1", "pol1", proj_f->GetBinCenter(newRangeMinBin), EXTRAP_delR_MAX);
-    polFits[2] = new TF1("pol2", "pol2", proj_f->GetBinCenter(newRangeMinBin), EXTRAP_delR_MAX);
-    polFits[3] = new TF1("pol3", "pol3", proj_f->GetBinCenter(newRangeMinBin), EXTRAP_delR_MAX);
-    polFits[4] = new TF1("pol4", "pol4", proj_f->GetBinCenter(newRangeMinBin), EXTRAP_delR_MAX);
-    polFits[5] = new TF1("pol5", "pol5", proj_f->GetBinCenter(newRangeMinBin), EXTRAP_delR_MAX);
+    polFits[0] = new TF1("pol0", "pol0", proj_f->GetBinCenter(newRangeMinBin), RANGE_delR_MAX);
+    polFits[1] = new TF1("pol1", "pol1", proj_f->GetBinCenter(newRangeMinBin), RANGE_delR_MAX);
+    polFits[2] = new TF1("pol2", "pol2", proj_f->GetBinCenter(newRangeMinBin), RANGE_delR_MAX);
+    polFits[3] = new TF1("pol3", "pol3", proj_f->GetBinCenter(newRangeMinBin), RANGE_delR_MAX);
+    polFits[4] = new TF1("pol4", "pol4", proj_f->GetBinCenter(newRangeMinBin), RANGE_delR_MAX);
+    polFits[5] = new TF1("pol5", "pol5", proj_f->GetBinCenter(newRangeMinBin), RANGE_delR_MAX);
 
     double bestChi2NDF_pol = 1e30;
     TF1* bestPolFit = nullptr;
@@ -282,7 +295,7 @@ TH1D* extrapolateIgnoredBins(TH1D* proj_f, double rangeMin, double rangeMax, dou
 				}
 
 				// this is the line that does the fitting
-        fitHist->Fit(polFits[i], "RQ", "", proj_f->GetBinCenter(newRangeMinBin), EXTRAP_delR_MAX);
+        fitHist->Fit(polFits[i], "RQ", "", proj_f->GetBinCenter(newRangeMinBin), RANGE_delR_MAX);
         
 				// chi2 check to select which polynomial is better
 				double chi2NDF = polFits[i]->GetChisquare() / polFits[i]->GetNDF();
@@ -472,6 +485,30 @@ void CorrBkgd_EtaRange() {
 
 				_bg->SetXTitle("M_{#gamma#gamma} [GeV/c^{2}]");
 				_bg->SetYTitle("Counts");
+
+				// below than this the codes will scale background to match foreground (signal) to some mass range
+				// Get the bin numbers corresponding to the scaling range
+				int min_th = _fg->FindBin(MASS_RANGE_MIN);
+				int max_th = _fg->FindBin(MASS_RANGE_MAX);
+
+				// Sum the bin contents in the specified range for both foreground and background
+				double _fg_sum = 0.0;
+				double _bg_sum = 0.0;
+
+				for (int i = min_th; i <= max_th; ++i) {
+					_fg_sum += _fg->GetBinContent(i);
+					_bg_sum += _bg->GetBinContent(i);
+				}
+
+				// Calculate the scale factor
+				double scale_factor = 1.0;
+				if (_bg_sum > 0) {
+					scale_factor = _fg_sum/_bg_sum;
+				} 
+				else {std::cout << "Warning: Background sum in the given range is zero." << std::endl;}
+
+				// Apply the scale factor to the background histogram
+				_bg->Scale(scale_factor);
 
 				outputFile->cd(); // preparing output file to write histogram as requirement
 				_fg->Write(); // write the foreground in the output file
