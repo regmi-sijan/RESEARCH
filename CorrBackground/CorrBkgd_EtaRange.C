@@ -34,9 +34,6 @@ const char* INV_MASS_BKGD_HIST_NAME = "pairInvMassPtdelRBkgd";
 const double RANGE_delR_MIN = 0.02;  
 const double RANGE_delR_MAX = 1.0;   
 
-// working pairpT range for our analysis
-const double pairpT_MIN = 1.8;  
-const double pairpT_MAX = 18.0;
 
 // range to scale bg to match fg
 const double MASS_RANGE_MIN = 0.9;  
@@ -46,29 +43,13 @@ const double MASS_RANGE_MAX = 1.8;
 // Predefined ranges for pairpT projection
 const double pairpT_RANGES[][2] = {
   {0.0, 2.0},
-  {2.0, 2.2},
-  {2.2, 2.4},
-  {2.4, 2.6},
-  {2.6, 2.8},
-  {2.8, 3.0},
-  {3.0, 3.3},
-  {3.3, 3.6},
-  {3.6, 3.9},
-  {3.9, 4.2},
-  {4.2, 4.5},
-  {4.5, 4.8},
-  {4.8, 5.1},
-  {5.1, 5.4},
-  {5.4, 5.7},
-  {5.7, 6.0},
-  {6.0, 6.3},
-  {6.3, 6.6},
-  {6.6, 6.9},
-  {6.9, 7.2},
-  {7.2, 7.5},
-  {7.5, 8.0},
-  {8.0, 9.0},
-  {9.0, 18.0}
+  {2.0, 3.0},
+  {3.0, 4.0},
+  {4.0, 5.0},
+  {5.0, 7.0},
+  {7.0, 9.0},
+  {9.0, 11.0},
+	{11.0, 15.0}
 };
 
 // size of the tuples defined earlier
@@ -81,6 +62,7 @@ const int NUM_RANGES = sizeof(pairpT_RANGES) / sizeof(pairpT_RANGES[0]);
 std::tuple<double, double> ModifyEtaRange(double pT_min, double pT_max, double rangeMin, double rangeMax) {
 
   // we will make sure to return 2 points for truncating eta peak
+	// first initialize the default range (that will be for low pair-pT)
   double a_1 = 0.35; 
   double a_2 = 0.65;
 
@@ -267,7 +249,7 @@ TH1D* extrapolateIgnoredBins(TH1D* proj_f, double rangeMin, double rangeMax, dou
   if (EtaMode){newRangeMinBin = a1_bin-2;}
    
   // adjust the min bin to start if we encounter the negative range
-  if (newRangeMinBin < 0){newRangeMinBin = 1; }
+  if (newRangeMinBin < 0){newRangeMinBin = 1;}
 		  
   // Prepare for fitting polynomials using the updated newRangeMinBin and bins from rangeMax to 0.8
   TF1* polFits[6];
@@ -436,8 +418,8 @@ void CorrBkgd_EtaRange() {
     int b_min_bin = delR_pairpT_b->GetYaxis()->FindBin(pairpT_min);
     int b_max_bin = delR_pairpT_b->GetYaxis()->FindBin(pairpT_max);
 
-    TH1D* delR_proj_f = delR_pairpT_f->ProjectionX(Form("delR_proj_f_%d", rangeIdx), f_min_bin, f_max_bin);
-    TH1D* delR_proj_b = delR_pairpT_b->ProjectionX(Form("delR_proj_b_%d", rangeIdx), b_min_bin, b_max_bin);
+    TH1D* delR_proj_f = delR_pairpT_f->ProjectionX(Form("delR_proj_f_%d", rangeIdx), f_min_bin, f_max_bin-1);
+    TH1D* delR_proj_b = delR_pairpT_b->ProjectionX(Form("delR_proj_b_%d", rangeIdx), b_min_bin, b_max_bin-1);
 
 							 
     // Identify the peak range
@@ -446,10 +428,9 @@ void CorrBkgd_EtaRange() {
     // Extrapolate ignored bins
     // First we will extrapolate eta-peak region and then pi0 peak region
     
-    // removing eta-peak
-    // this will work for pT higher than 2.5
+    // removing eta-peak only if pT is higher than given value (for smaller than 3.0 we are not doing anything for eta meson)
     if (pairpT_min >= 3.0) {
-      delR_proj_f = extrapolateIgnoredBins(delR_proj_f, rangeMin, rangeMax, pairpT_min, pairpT_max, true); // "true" means running in eta mode
+      delR_proj_f = extrapolateIgnoredBins(delR_proj_f, rangeMin, rangeMax, pairpT_min, pairpT_max, true); // "true" means running in eta-meson mode
     }
 
     // remove pi0 peak
@@ -457,10 +438,13 @@ void CorrBkgd_EtaRange() {
     
 
     // Now we will use weight to the invariant mass histogram and dynamically save all the histogram required
-    
+		double del_pT_f = masshist_f->GetYaxis()->GetBinWidth(2); // take width of any bin (all bins have equal width)
+		double del_pT_b = masshist_f->GetYaxis()->GetBinWidth(2);
+	  
     // first let us project the mass 3D hist to the required pairpT range
-    masshist_f->GetYaxis()->SetRangeUser(pairpT_min, pairpT_max);
-    masshist_b->GetYaxis()->SetRangeUser(pairpT_min, pairpT_max);
+		// find the del_pT and then subtract
+    masshist_f->GetYaxis()->SetRangeUser(pairpT_min, pairpT_max - del_pT_f);
+    masshist_b->GetYaxis()->SetRangeUser(pairpT_min, pairpT_max - del_pT_b);
 
     // Project onto the x and z axes
     TH2F* mass_delR_f = (TH2F*)masshist_f->Project3D("xz");
