@@ -35,19 +35,19 @@ class pi0ClusterAna : public SubsysReco
       Typically this is where you can book histograms, and e.g.
       register them to Fun4AllServer (so they can be output to file
       using Fun4AllServer::dumpHistos() method).
-   */
+  */
   int Init(PHCompositeNode *topNode) override;
 
   /** Called for first event when run number is known.
       Typically this is where you may want to fetch data from
       database, because you know the run number. A place
       to book histograms which have to know the run number.
-   */
+  */
   int InitRun(PHCompositeNode *topNode) override;
 
   /** Called for each event.
       This is where you do the real work.
-   */
+  */
   int process_event(PHCompositeNode *topNode) override;
 
   /// Clean up internals after each event.
@@ -64,7 +64,7 @@ class pi0ClusterAna : public SubsysReco
 
   void Print(const std::string &what = "ALL") const override;
 
-	void Loop(int nevts, TString _filename, TTree * intree = 0);
+  void Loop(int nevts, TString _filename, TTree * intree = 0);
 
 
  private:
@@ -100,12 +100,12 @@ class pi0ClusterAna : public SubsysReco
 
 
   float alphaCut = -1.;
-	int n_event;
+  int n_event;
 	
   TTree *_eventTree = nullptr;
 	
-	int _eventNumber = -1;
-	int _nFourVector = -1; // store the number of clusters recorded in each event (our focus will only be in EMCal)
+  int _eventNumber = -1;
+  int _nFourVector = -1; // store the number of clusters recorded in each event (our focus will only be in EMCal)
   float _fv_energy[100000] = {0}; // truth energy of four vector
   float _fv_px[100000] = {0}; // 3 of four momentum (px, py and pz) of the cluster
   float _fv_py[100000] = {0};
@@ -113,21 +113,21 @@ class pi0ClusterAna : public SubsysReco
   float _fv_Eta[100000] = {0}; // pseudorapidity of the four vector
   float _pid_primary[100000] = {0}; // associated primary particle
   float _pid_secondary[100000] = {0}; // associated secondary particle
-	float _primary_id[100000] = {0}; // primary id of the particle
-	float _parent_id[100000] = {0}; // parent id of the particle
-	float _embedding[100000] = {0}; // parent id of the particle
+  float _primary_id[100000] = {0}; // primary id of the particle
+  float _parent_id[100000] = {0}; // parent id of the particle
+  float _embedding[100000] = {0}; // parent id of the particle
 
   TFile *out;
-	TFile *f_temp;
+  TFile *f_temp;
   //Fun4AllHistoManager *hm = nullptr;
 	
   std::string Outfile;
 
-	TH3F *Pi0_pt_eta_mass = nullptr;
-	TH3F *Eta_pt_eta_mass = nullptr;
-	TH1F *Pi0_pt = nullptr;
-	TH1F *Eta_pt = nullptr;
-	TH1F *pairInvMassTotal = nullptr;
+  TH3F *Pi0_pt_eta_mass = nullptr;
+  TH3F *Eta_pt_eta_mass = nullptr;
+  TH1F *Pi0_pt = nullptr;
+  TH1F *Eta_pt = nullptr;
+  TH1F *pairInvMassTotal = nullptr;
 
 };
 

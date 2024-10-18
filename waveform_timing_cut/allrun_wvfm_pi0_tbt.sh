@@ -13,7 +13,7 @@ printenv
 echo ' '
 echo 'START: '`date`
 echo ' ' 
- 
+
 
 echo to make a plot of start time of waveform
 
@@ -32,18 +32,18 @@ while IFS= read -r line; do
     n_run="$(echo "$line" | awk '{print $1}')"
     seg="$(echo "$line" | awk '{print $2}')"
 
-		for((i = 0; i < seg; i++))
-		do
-			echo "$n_run, $i"
-			
-			root.exe -b << EOF
+    for((i = 0; i < seg; i++))
+    do
+	echo "$n_run, $i"
+	
+	root.exe -b << EOF
 				.L Fun4All_pi0_wvfm_tbt.C
 				Fun4All_pi0_wvfm_tbt($n_run, $i);
 			.q
 
 EOF
 
-		done
+    done
     
 done < "$file_path"
 

@@ -62,45 +62,45 @@ R__LOAD_LIBRARY(libpi0ClusterAna.so)
 // try inputFile = /sphenix/sim/sim01/sphnxpro/sHijing_HepMC/sHijing_0-12fm.dat
 
 // this macro can be used to read DST file and use information for simple particle generation using different modes and embedded them
-int Fun4All_tbt_SIMPLE_EMBED(const int seg_num = 0)
+  int Fun4All_tbt_SIMPLE_EMBED(const int seg_num = 0)
 {
   const int nEvents = 1;
   const int skip = 0;
   const string &outdir = ".";
 
-	// list of all input files
-	string inputFile0 = "DST_CALO_G4HIT_pythia8_pp_mb_3MHz-0000000011-";
+  // list of all input files
+  string inputFile0 = "DST_CALO_G4HIT_pythia8_pp_mb_3MHz-0000000011-";
   //string inputFile1 = "DST_GLOBAL_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000010-";
-	string inputFile2 = "DST_TRUTH_pythia8_pp_mb_3MHz-0000000011-";
-	string inputFile3 = "DST_CALO_CLUSTER_pythia8_pp_mb_3MHz-0000000011-";
+  string inputFile2 = "DST_TRUTH_pythia8_pp_mb_3MHz-0000000011-";
+  string inputFile3 = "DST_CALO_CLUSTER_pythia8_pp_mb_3MHz-0000000011-";
 	
-	// list of all output files
-	//string outputFile0 = "/sphenix/user/sregmi/WORKING_AREA/saved_ntuples/test_Fun4All_ntuples_cluster_run10_multiple_embedding_";
-	string outputFile1 = "/sphenix/user/sregmi/WORKING_AREA/saved_ntuples/run11_truth_ntuples/Fun4All_ntuples_truth_run11_multiple_embedding_";
+  // list of all output files
+  //string outputFile0 = "/sphenix/user/sregmi/WORKING_AREA/saved_ntuples/test_Fun4All_ntuples_cluster_run10_multiple_embedding_";
+  string outputFile1 = "/sphenix/user/sregmi/WORKING_AREA/saved_ntuples/run11_truth_ntuples/Fun4All_ntuples_truth_run11_multiple_embedding_";
 
-	// setting all segments as per their number
-	int ynum_int = 100000+ seg_num;
+  // setting all segments as per their number
+  int ynum_int = 100000+ seg_num;
   TString yn_tstr = "";
   yn_tstr += ynum_int;
   yn_tstr.Remove(0,1);
 
-	// final version of all input files
+  // final version of all input files
   inputFile0 += yn_tstr.Data();
   //inputFile1 += yn_tstr.Data();
-	inputFile2 += yn_tstr.Data();
-	inputFile3 += yn_tstr.Data();
+  inputFile2 += yn_tstr.Data();
+  inputFile3 += yn_tstr.Data();
 	
   inputFile0 += ".root";
   //inputFile1 += ".root";
-	inputFile2 += ".root";
-	inputFile3 += ".root";
+  inputFile2 += ".root";
+  inputFile3 += ".root";
   
-	// final version of all output files 
-	//outputFile0 += yn_tstr.Data();
-	outputFile1 += yn_tstr.Data();
+  // final version of all output files 
+  //outputFile0 += yn_tstr.Data();
+  outputFile1 += yn_tstr.Data();
 	
-	//outputFile0 += ".root";
-	outputFile1 += ".root";
+  //outputFile0 += ".root";
+  outputFile1 += ".root";
 	 
   cout << "running over these files" << endl;
   cout << inputFile0 << endl;
@@ -108,14 +108,14 @@ int Fun4All_tbt_SIMPLE_EMBED(const int seg_num = 0)
   cout << inputFile2 << endl;
   cout << inputFile3 << endl;
 
-	cout << "==============================================================================================" << endl;
+  cout << "==============================================================================================" << endl;
 
   cout << "our output files will be as followings" << endl;
   //cout << outputFile0 << endl;
   cout << outputFile1 << endl;
 
-	//===========================================================================================================
-	//===========================================================================================================
+  //===========================================================================================================
+  //===========================================================================================================
 
   Fun4AllServer *se = Fun4AllServer::instance();
   se->Verbosity(0);
@@ -127,7 +127,7 @@ int Fun4All_tbt_SIMPLE_EMBED(const int seg_num = 0)
   // just if we set some flags somewhere in this macro
   recoConsts *rc = recoConsts::instance();
 
-	//===============
+  //===============
   // conditions DB flags
   //===============
   Enable::CDB = true;
@@ -142,19 +142,19 @@ int Fun4All_tbt_SIMPLE_EMBED(const int seg_num = 0)
   // verbosity setting (applies to all input managers)
   Input::VERBOSITY = 1;
 
-	Input::READHITS = false; // true;
-	//INPUTREADHITS::filename[0] = inputFile0;
-	//INPUTREADHITS::filename[1] = inputFile1;
+  Input::READHITS = false; // true;
+  //INPUTREADHITS::filename[0] = inputFile0;
+  //INPUTREADHITS::filename[1] = inputFile1;
 
   Input::EMBED = true;
-	INPUTEMBED::filename[0] = inputFile0;  //0;
-	//INPUTEMBED::filename[1] = inputFile1;
-	INPUTEMBED::filename[2] = inputFile2;
-	INPUTEMBED::filename[3] = inputFile3;
+  INPUTEMBED::filename[0] = inputFile0;  //0;
+  //INPUTEMBED::filename[1] = inputFile1;
+  INPUTEMBED::filename[2] = inputFile2;
+  INPUTEMBED::filename[3] = inputFile3;
 
   Input::SIMPLE = true;
   Input::SIMPLE_VERBOSITY = 0;
-	Input::SIMPLE_NUMBER = 12;
+  Input::SIMPLE_NUMBER = 12;
 
   InputInit();
 
@@ -168,173 +168,173 @@ int Fun4All_tbt_SIMPLE_EMBED(const int seg_num = 0)
   // add the settings for other with [1], next with [2]...
 	
   if (Input::SIMPLE)
-  {
-		// make sure eta meson (221) is embedded at the end (this is to track it right at first) to figure out the era of embedding
-		//INPUTGENERATOR::SimpleEventGenerator[0]->add_particles("eta", 5);		
+    {
+      // make sure eta meson (221) is embedded at the end (this is to track it right at first) to figure out the era of embedding
+      //INPUTGENERATOR::SimpleEventGenerator[0]->add_particles("eta", 5);		
 		
-		INPUTGENERATOR::SimpleEventGenerator[0]->add_particles(130,5); // K0 long
-		INPUTGENERATOR::SimpleEventGenerator[1]->add_particles(211,5); // pi+ ;; we can use pdg number of particle instead of name
-		INPUTGENERATOR::SimpleEventGenerator[2]->add_particles(310,5); // K0 short ;; we can use pdg number of particle instead of name
-		INPUTGENERATOR::SimpleEventGenerator[3]->add_particles(321,5); // K+ ;; we can use pdg number of particle instead of name
-		INPUTGENERATOR::SimpleEventGenerator[4]->add_particles(411,5); // D+ ;; we can use pdg number of particle instead of name
-		INPUTGENERATOR::SimpleEventGenerator[5]->add_particles(421,5); // D0 ;; we can use pdg number of particle instead of name
-		INPUTGENERATOR::SimpleEventGenerator[6]->add_particles(431,5); // D+ s ;; we can use pdg number of particle instead of name
-		INPUTGENERATOR::SimpleEventGenerator[7]->add_particles(-321,5); // K- ;; we can use pdg number of particle instead of name
-		INPUTGENERATOR::SimpleEventGenerator[8]->add_particles(-411,5); // D- ;; we can use pdg number of particle instead of name
-		INPUTGENERATOR::SimpleEventGenerator[9]->add_particles(-421,5); // anti D0 ;; we can use pdg number of particle instead of name
-		INPUTGENERATOR::SimpleEventGenerator[10]->add_particles(-431,5); // anti D s ;; we can use pdg number of particle instead of name		
-		INPUTGENERATOR::SimpleEventGenerator[11]->add_particles(221,5); // eta meson ;; we can use pdg number of particle instead of name
+      INPUTGENERATOR::SimpleEventGenerator[0]->add_particles(130,5); // K0 long
+      INPUTGENERATOR::SimpleEventGenerator[1]->add_particles(211,5); // pi+ ;; we can use pdg number of particle instead of name
+      INPUTGENERATOR::SimpleEventGenerator[2]->add_particles(310,5); // K0 short ;; we can use pdg number of particle instead of name
+      INPUTGENERATOR::SimpleEventGenerator[3]->add_particles(321,5); // K+ ;; we can use pdg number of particle instead of name
+      INPUTGENERATOR::SimpleEventGenerator[4]->add_particles(411,5); // D+ ;; we can use pdg number of particle instead of name
+      INPUTGENERATOR::SimpleEventGenerator[5]->add_particles(421,5); // D0 ;; we can use pdg number of particle instead of name
+      INPUTGENERATOR::SimpleEventGenerator[6]->add_particles(431,5); // D+ s ;; we can use pdg number of particle instead of name
+      INPUTGENERATOR::SimpleEventGenerator[7]->add_particles(-321,5); // K- ;; we can use pdg number of particle instead of name
+      INPUTGENERATOR::SimpleEventGenerator[8]->add_particles(-411,5); // D- ;; we can use pdg number of particle instead of name
+      INPUTGENERATOR::SimpleEventGenerator[9]->add_particles(-421,5); // anti D0 ;; we can use pdg number of particle instead of name
+      INPUTGENERATOR::SimpleEventGenerator[10]->add_particles(-431,5); // anti D s ;; we can use pdg number of particle instead of name		
+      INPUTGENERATOR::SimpleEventGenerator[11]->add_particles(221,5); // eta meson ;; we can use pdg number of particle instead of name
 		
      
-    if (Input::HEPMC || Input::EMBED)
-    {
-			//INPUTGENERATOR::SimpleEventGenerator[0]->set_reuse_global_vertex(true);
-      INPUTGENERATOR::SimpleEventGenerator[0]->set_reuse_existing_vertex(true); 
+      if (Input::HEPMC || Input::EMBED)
+	{
+	  //INPUTGENERATOR::SimpleEventGenerator[0]->set_reuse_global_vertex(true);
+	  INPUTGENERATOR::SimpleEventGenerator[0]->set_reuse_existing_vertex(true); 
 			    
-			INPUTGENERATOR::SimpleEventGenerator[1]->set_reuse_existing_vertex(true);
-      INPUTGENERATOR::SimpleEventGenerator[2]->set_reuse_existing_vertex(true);
-      INPUTGENERATOR::SimpleEventGenerator[3]->set_reuse_existing_vertex(true);
-      INPUTGENERATOR::SimpleEventGenerator[4]->set_reuse_existing_vertex(true);
-      INPUTGENERATOR::SimpleEventGenerator[5]->set_reuse_existing_vertex(true);
-      INPUTGENERATOR::SimpleEventGenerator[6]->set_reuse_existing_vertex(true);
-      INPUTGENERATOR::SimpleEventGenerator[7]->set_reuse_existing_vertex(true);
-      INPUTGENERATOR::SimpleEventGenerator[8]->set_reuse_existing_vertex(true);
-      INPUTGENERATOR::SimpleEventGenerator[9]->set_reuse_existing_vertex(true);
-      INPUTGENERATOR::SimpleEventGenerator[10]->set_reuse_existing_vertex(true);
-      INPUTGENERATOR::SimpleEventGenerator[11]->set_reuse_existing_vertex(true);
+	  INPUTGENERATOR::SimpleEventGenerator[1]->set_reuse_existing_vertex(true);
+	  INPUTGENERATOR::SimpleEventGenerator[2]->set_reuse_existing_vertex(true);
+	  INPUTGENERATOR::SimpleEventGenerator[3]->set_reuse_existing_vertex(true);
+	  INPUTGENERATOR::SimpleEventGenerator[4]->set_reuse_existing_vertex(true);
+	  INPUTGENERATOR::SimpleEventGenerator[5]->set_reuse_existing_vertex(true);
+	  INPUTGENERATOR::SimpleEventGenerator[6]->set_reuse_existing_vertex(true);
+	  INPUTGENERATOR::SimpleEventGenerator[7]->set_reuse_existing_vertex(true);
+	  INPUTGENERATOR::SimpleEventGenerator[8]->set_reuse_existing_vertex(true);
+	  INPUTGENERATOR::SimpleEventGenerator[9]->set_reuse_existing_vertex(true);
+	  INPUTGENERATOR::SimpleEventGenerator[10]->set_reuse_existing_vertex(true);
+	  INPUTGENERATOR::SimpleEventGenerator[11]->set_reuse_existing_vertex(true);
 			
       
-			INPUTGENERATOR::SimpleEventGenerator[0]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	  INPUTGENERATOR::SimpleEventGenerator[0]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
       
-			INPUTGENERATOR::SimpleEventGenerator[1]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
-      INPUTGENERATOR::SimpleEventGenerator[2]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
-      INPUTGENERATOR::SimpleEventGenerator[3]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
-      INPUTGENERATOR::SimpleEventGenerator[4]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
-      INPUTGENERATOR::SimpleEventGenerator[5]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
-      INPUTGENERATOR::SimpleEventGenerator[6]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
-      INPUTGENERATOR::SimpleEventGenerator[7]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
-      INPUTGENERATOR::SimpleEventGenerator[8]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
-      INPUTGENERATOR::SimpleEventGenerator[9]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
-      INPUTGENERATOR::SimpleEventGenerator[10]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
-      INPUTGENERATOR::SimpleEventGenerator[11]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	  INPUTGENERATOR::SimpleEventGenerator[1]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	  INPUTGENERATOR::SimpleEventGenerator[2]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	  INPUTGENERATOR::SimpleEventGenerator[3]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	  INPUTGENERATOR::SimpleEventGenerator[4]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	  INPUTGENERATOR::SimpleEventGenerator[5]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	  INPUTGENERATOR::SimpleEventGenerator[6]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	  INPUTGENERATOR::SimpleEventGenerator[7]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	  INPUTGENERATOR::SimpleEventGenerator[8]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	  INPUTGENERATOR::SimpleEventGenerator[9]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	  INPUTGENERATOR::SimpleEventGenerator[10]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	  INPUTGENERATOR::SimpleEventGenerator[11]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
 			
-    }
-    else
-    {
-      INPUTGENERATOR::SimpleEventGenerator[0]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	}
+      else
+	{
+	  INPUTGENERATOR::SimpleEventGenerator[0]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
 						
-      INPUTGENERATOR::SimpleEventGenerator[1]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
-      INPUTGENERATOR::SimpleEventGenerator[2]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
-      INPUTGENERATOR::SimpleEventGenerator[3]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
-      INPUTGENERATOR::SimpleEventGenerator[4]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
-      INPUTGENERATOR::SimpleEventGenerator[5]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
-      INPUTGENERATOR::SimpleEventGenerator[6]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
-      INPUTGENERATOR::SimpleEventGenerator[7]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
-      INPUTGENERATOR::SimpleEventGenerator[8]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
-      INPUTGENERATOR::SimpleEventGenerator[9]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
-      INPUTGENERATOR::SimpleEventGenerator[10]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
-      INPUTGENERATOR::SimpleEventGenerator[11]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	  INPUTGENERATOR::SimpleEventGenerator[1]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	  INPUTGENERATOR::SimpleEventGenerator[2]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	  INPUTGENERATOR::SimpleEventGenerator[3]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	  INPUTGENERATOR::SimpleEventGenerator[4]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	  INPUTGENERATOR::SimpleEventGenerator[5]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	  INPUTGENERATOR::SimpleEventGenerator[6]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	  INPUTGENERATOR::SimpleEventGenerator[7]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	  INPUTGENERATOR::SimpleEventGenerator[8]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	  INPUTGENERATOR::SimpleEventGenerator[9]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	  INPUTGENERATOR::SimpleEventGenerator[10]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	  INPUTGENERATOR::SimpleEventGenerator[11]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
 			
       			
 			
-			INPUTGENERATOR::SimpleEventGenerator[0]->set_vertex_distribution_mean(0., 0., 0.);
+	  INPUTGENERATOR::SimpleEventGenerator[0]->set_vertex_distribution_mean(0., 0., 0.);
 			
-      INPUTGENERATOR::SimpleEventGenerator[1]->set_vertex_distribution_mean(0., 0., 0.);
-      INPUTGENERATOR::SimpleEventGenerator[2]->set_vertex_distribution_mean(0., 0., 0.);
-      INPUTGENERATOR::SimpleEventGenerator[3]->set_vertex_distribution_mean(0., 0., 0.);
-      INPUTGENERATOR::SimpleEventGenerator[4]->set_vertex_distribution_mean(0., 0., 0.);
-      INPUTGENERATOR::SimpleEventGenerator[5]->set_vertex_distribution_mean(0., 0., 0.);
-      INPUTGENERATOR::SimpleEventGenerator[6]->set_vertex_distribution_mean(0., 0., 0.);
-      INPUTGENERATOR::SimpleEventGenerator[7]->set_vertex_distribution_mean(0., 0., 0.);
-      INPUTGENERATOR::SimpleEventGenerator[8]->set_vertex_distribution_mean(0., 0., 0.);
-      INPUTGENERATOR::SimpleEventGenerator[9]->set_vertex_distribution_mean(0., 0., 0.);
-      INPUTGENERATOR::SimpleEventGenerator[10]->set_vertex_distribution_mean(0., 0., 0.);
-      INPUTGENERATOR::SimpleEventGenerator[11]->set_vertex_distribution_mean(0., 0., 0.);
+	  INPUTGENERATOR::SimpleEventGenerator[1]->set_vertex_distribution_mean(0., 0., 0.);
+	  INPUTGENERATOR::SimpleEventGenerator[2]->set_vertex_distribution_mean(0., 0., 0.);
+	  INPUTGENERATOR::SimpleEventGenerator[3]->set_vertex_distribution_mean(0., 0., 0.);
+	  INPUTGENERATOR::SimpleEventGenerator[4]->set_vertex_distribution_mean(0., 0., 0.);
+	  INPUTGENERATOR::SimpleEventGenerator[5]->set_vertex_distribution_mean(0., 0., 0.);
+	  INPUTGENERATOR::SimpleEventGenerator[6]->set_vertex_distribution_mean(0., 0., 0.);
+	  INPUTGENERATOR::SimpleEventGenerator[7]->set_vertex_distribution_mean(0., 0., 0.);
+	  INPUTGENERATOR::SimpleEventGenerator[8]->set_vertex_distribution_mean(0., 0., 0.);
+	  INPUTGENERATOR::SimpleEventGenerator[9]->set_vertex_distribution_mean(0., 0., 0.);
+	  INPUTGENERATOR::SimpleEventGenerator[10]->set_vertex_distribution_mean(0., 0., 0.);
+	  INPUTGENERATOR::SimpleEventGenerator[11]->set_vertex_distribution_mean(0., 0., 0.);
 			
 
-      INPUTGENERATOR::SimpleEventGenerator[0]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	  INPUTGENERATOR::SimpleEventGenerator[0]->set_vertex_distribution_width(0.01, 0.01, 5.);
 			
-      INPUTGENERATOR::SimpleEventGenerator[1]->set_vertex_distribution_width(0.01, 0.01, 5.);
-      INPUTGENERATOR::SimpleEventGenerator[2]->set_vertex_distribution_width(0.01, 0.01, 5.);
-      INPUTGENERATOR::SimpleEventGenerator[3]->set_vertex_distribution_width(0.01, 0.01, 5.);
-      INPUTGENERATOR::SimpleEventGenerator[4]->set_vertex_distribution_width(0.01, 0.01, 5.);
-      INPUTGENERATOR::SimpleEventGenerator[5]->set_vertex_distribution_width(0.01, 0.01, 5.);
-      INPUTGENERATOR::SimpleEventGenerator[6]->set_vertex_distribution_width(0.01, 0.01, 5.);
-      INPUTGENERATOR::SimpleEventGenerator[7]->set_vertex_distribution_width(0.01, 0.01, 5.);
-      INPUTGENERATOR::SimpleEventGenerator[8]->set_vertex_distribution_width(0.01, 0.01, 5.);
-      INPUTGENERATOR::SimpleEventGenerator[9]->set_vertex_distribution_width(0.01, 0.01, 5.);
-      INPUTGENERATOR::SimpleEventGenerator[10]->set_vertex_distribution_width(0.01, 0.01, 5.);
-      INPUTGENERATOR::SimpleEventGenerator[11]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	  INPUTGENERATOR::SimpleEventGenerator[1]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	  INPUTGENERATOR::SimpleEventGenerator[2]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	  INPUTGENERATOR::SimpleEventGenerator[3]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	  INPUTGENERATOR::SimpleEventGenerator[4]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	  INPUTGENERATOR::SimpleEventGenerator[5]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	  INPUTGENERATOR::SimpleEventGenerator[6]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	  INPUTGENERATOR::SimpleEventGenerator[7]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	  INPUTGENERATOR::SimpleEventGenerator[8]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	  INPUTGENERATOR::SimpleEventGenerator[9]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	  INPUTGENERATOR::SimpleEventGenerator[10]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	  INPUTGENERATOR::SimpleEventGenerator[11]->set_vertex_distribution_width(0.01, 0.01, 5.);
 			
-    }
-    INPUTGENERATOR::SimpleEventGenerator[0]->set_eta_range(-1.1, 1.1);
+	}
+      INPUTGENERATOR::SimpleEventGenerator[0]->set_eta_range(-1.1, 1.1);
 		
-    INPUTGENERATOR::SimpleEventGenerator[1]->set_eta_range(-1.1, 1.1);
-    INPUTGENERATOR::SimpleEventGenerator[2]->set_eta_range(-1.1, 1.1);
-    INPUTGENERATOR::SimpleEventGenerator[3]->set_eta_range(-1.1, 1.1);
-    INPUTGENERATOR::SimpleEventGenerator[4]->set_eta_range(-1.1, 1.1);
-    INPUTGENERATOR::SimpleEventGenerator[5]->set_eta_range(-1.1, 1.1);
-    INPUTGENERATOR::SimpleEventGenerator[6]->set_eta_range(-1.1, 1.1);
-    INPUTGENERATOR::SimpleEventGenerator[7]->set_eta_range(-1.1, 1.1);
-    INPUTGENERATOR::SimpleEventGenerator[8]->set_eta_range(-1.1, 1.1);
-    INPUTGENERATOR::SimpleEventGenerator[9]->set_eta_range(-1.1, 1.1);
-    INPUTGENERATOR::SimpleEventGenerator[10]->set_eta_range(-1.1, 1.1);
-    INPUTGENERATOR::SimpleEventGenerator[11]->set_eta_range(-1.1, 1.1);
-		
-
-    INPUTGENERATOR::SimpleEventGenerator[0]->set_phi_range(-M_PI, M_PI);
-		
-    INPUTGENERATOR::SimpleEventGenerator[1]->set_phi_range(-M_PI, M_PI);
-    INPUTGENERATOR::SimpleEventGenerator[2]->set_phi_range(-M_PI, M_PI);
-    INPUTGENERATOR::SimpleEventGenerator[3]->set_phi_range(-M_PI, M_PI);
-    INPUTGENERATOR::SimpleEventGenerator[4]->set_phi_range(-M_PI, M_PI);
-    INPUTGENERATOR::SimpleEventGenerator[5]->set_phi_range(-M_PI, M_PI);
-    INPUTGENERATOR::SimpleEventGenerator[6]->set_phi_range(-M_PI, M_PI);
-    INPUTGENERATOR::SimpleEventGenerator[7]->set_phi_range(-M_PI, M_PI);
-    INPUTGENERATOR::SimpleEventGenerator[8]->set_phi_range(-M_PI, M_PI);
-    INPUTGENERATOR::SimpleEventGenerator[9]->set_phi_range(-M_PI, M_PI);
-    INPUTGENERATOR::SimpleEventGenerator[10]->set_phi_range(-M_PI, M_PI);
-    INPUTGENERATOR::SimpleEventGenerator[11]->set_phi_range(-M_PI, M_PI);
+      INPUTGENERATOR::SimpleEventGenerator[1]->set_eta_range(-1.1, 1.1);
+      INPUTGENERATOR::SimpleEventGenerator[2]->set_eta_range(-1.1, 1.1);
+      INPUTGENERATOR::SimpleEventGenerator[3]->set_eta_range(-1.1, 1.1);
+      INPUTGENERATOR::SimpleEventGenerator[4]->set_eta_range(-1.1, 1.1);
+      INPUTGENERATOR::SimpleEventGenerator[5]->set_eta_range(-1.1, 1.1);
+      INPUTGENERATOR::SimpleEventGenerator[6]->set_eta_range(-1.1, 1.1);
+      INPUTGENERATOR::SimpleEventGenerator[7]->set_eta_range(-1.1, 1.1);
+      INPUTGENERATOR::SimpleEventGenerator[8]->set_eta_range(-1.1, 1.1);
+      INPUTGENERATOR::SimpleEventGenerator[9]->set_eta_range(-1.1, 1.1);
+      INPUTGENERATOR::SimpleEventGenerator[10]->set_eta_range(-1.1, 1.1);
+      INPUTGENERATOR::SimpleEventGenerator[11]->set_eta_range(-1.1, 1.1);
 		
 
-    INPUTGENERATOR::SimpleEventGenerator[0]->set_pt_range(1, 20);
+      INPUTGENERATOR::SimpleEventGenerator[0]->set_phi_range(-M_PI, M_PI);
 		
-    INPUTGENERATOR::SimpleEventGenerator[1]->set_pt_range(1, 20);
-    INPUTGENERATOR::SimpleEventGenerator[2]->set_pt_range(1, 20);
-    INPUTGENERATOR::SimpleEventGenerator[3]->set_pt_range(1, 20);
-    INPUTGENERATOR::SimpleEventGenerator[4]->set_pt_range(1, 20);
-    INPUTGENERATOR::SimpleEventGenerator[5]->set_pt_range(1, 20);
-    INPUTGENERATOR::SimpleEventGenerator[6]->set_pt_range(1, 20);
-    INPUTGENERATOR::SimpleEventGenerator[7]->set_pt_range(1, 20);
-    INPUTGENERATOR::SimpleEventGenerator[8]->set_pt_range(1, 20);
-    INPUTGENERATOR::SimpleEventGenerator[9]->set_pt_range(1, 20);
-    INPUTGENERATOR::SimpleEventGenerator[10]->set_pt_range(1, 20);
-    INPUTGENERATOR::SimpleEventGenerator[11]->set_pt_range(1, 20);
+      INPUTGENERATOR::SimpleEventGenerator[1]->set_phi_range(-M_PI, M_PI);
+      INPUTGENERATOR::SimpleEventGenerator[2]->set_phi_range(-M_PI, M_PI);
+      INPUTGENERATOR::SimpleEventGenerator[3]->set_phi_range(-M_PI, M_PI);
+      INPUTGENERATOR::SimpleEventGenerator[4]->set_phi_range(-M_PI, M_PI);
+      INPUTGENERATOR::SimpleEventGenerator[5]->set_phi_range(-M_PI, M_PI);
+      INPUTGENERATOR::SimpleEventGenerator[6]->set_phi_range(-M_PI, M_PI);
+      INPUTGENERATOR::SimpleEventGenerator[7]->set_phi_range(-M_PI, M_PI);
+      INPUTGENERATOR::SimpleEventGenerator[8]->set_phi_range(-M_PI, M_PI);
+      INPUTGENERATOR::SimpleEventGenerator[9]->set_phi_range(-M_PI, M_PI);
+      INPUTGENERATOR::SimpleEventGenerator[10]->set_phi_range(-M_PI, M_PI);
+      INPUTGENERATOR::SimpleEventGenerator[11]->set_phi_range(-M_PI, M_PI);
 		
 
-    INPUTGENERATOR::SimpleEventGenerator[0]->set_power_law_n(-6.5);
+      INPUTGENERATOR::SimpleEventGenerator[0]->set_pt_range(1, 20);
 		
-    INPUTGENERATOR::SimpleEventGenerator[1]->set_power_law_n(-6.5);
-    INPUTGENERATOR::SimpleEventGenerator[2]->set_power_law_n(-6.5);
-    INPUTGENERATOR::SimpleEventGenerator[3]->set_power_law_n(-6.5);
-    INPUTGENERATOR::SimpleEventGenerator[4]->set_power_law_n(-6.5);
-    INPUTGENERATOR::SimpleEventGenerator[5]->set_power_law_n(-6.5);
-    INPUTGENERATOR::SimpleEventGenerator[6]->set_power_law_n(-6.5);
-    INPUTGENERATOR::SimpleEventGenerator[7]->set_power_law_n(-6.5);
-    INPUTGENERATOR::SimpleEventGenerator[8]->set_power_law_n(-6.5);
-    INPUTGENERATOR::SimpleEventGenerator[9]->set_power_law_n(-6.5);
-    INPUTGENERATOR::SimpleEventGenerator[10]->set_power_law_n(-6.5);
-    INPUTGENERATOR::SimpleEventGenerator[11]->set_power_law_n(-6.5);
+      INPUTGENERATOR::SimpleEventGenerator[1]->set_pt_range(1, 20);
+      INPUTGENERATOR::SimpleEventGenerator[2]->set_pt_range(1, 20);
+      INPUTGENERATOR::SimpleEventGenerator[3]->set_pt_range(1, 20);
+      INPUTGENERATOR::SimpleEventGenerator[4]->set_pt_range(1, 20);
+      INPUTGENERATOR::SimpleEventGenerator[5]->set_pt_range(1, 20);
+      INPUTGENERATOR::SimpleEventGenerator[6]->set_pt_range(1, 20);
+      INPUTGENERATOR::SimpleEventGenerator[7]->set_pt_range(1, 20);
+      INPUTGENERATOR::SimpleEventGenerator[8]->set_pt_range(1, 20);
+      INPUTGENERATOR::SimpleEventGenerator[9]->set_pt_range(1, 20);
+      INPUTGENERATOR::SimpleEventGenerator[10]->set_pt_range(1, 20);
+      INPUTGENERATOR::SimpleEventGenerator[11]->set_pt_range(1, 20);
+		
+
+      INPUTGENERATOR::SimpleEventGenerator[0]->set_power_law_n(-6.5);
+		
+      INPUTGENERATOR::SimpleEventGenerator[1]->set_power_law_n(-6.5);
+      INPUTGENERATOR::SimpleEventGenerator[2]->set_power_law_n(-6.5);
+      INPUTGENERATOR::SimpleEventGenerator[3]->set_power_law_n(-6.5);
+      INPUTGENERATOR::SimpleEventGenerator[4]->set_power_law_n(-6.5);
+      INPUTGENERATOR::SimpleEventGenerator[5]->set_power_law_n(-6.5);
+      INPUTGENERATOR::SimpleEventGenerator[6]->set_power_law_n(-6.5);
+      INPUTGENERATOR::SimpleEventGenerator[7]->set_power_law_n(-6.5);
+      INPUTGENERATOR::SimpleEventGenerator[8]->set_power_law_n(-6.5);
+      INPUTGENERATOR::SimpleEventGenerator[9]->set_power_law_n(-6.5);
+      INPUTGENERATOR::SimpleEventGenerator[10]->set_power_law_n(-6.5);
+      INPUTGENERATOR::SimpleEventGenerator[11]->set_power_law_n(-6.5);
 		
 	
-  }
+    }
 
 
   if (Input::PILEUPRATE > 0)
-  {
-    //! apply sPHENIX nominal beam parameter with 2mrad crossing as defined in sPH-TRG-2020-001
-    Input::ApplysPHENIXBeamParameter(INPUTMANAGER::HepMCPileupInputManager);
-  }
+    {
+      //! apply sPHENIX nominal beam parameter with 2mrad crossing as defined in sPH-TRG-2020-001
+      Input::ApplysPHENIXBeamParameter(INPUTMANAGER::HepMCPileupInputManager);
+    }
   // register all input generators with Fun4All
   InputRegister();
 
@@ -375,8 +375,8 @@ int Fun4All_tbt_SIMPLE_EMBED(const int seg_num = 0)
   //Enable::PIPE = true;
   //Enable::PIPE_ABSORBER = true;
   //Enable::INTT = false;
-//  Enable::INTT_ABSORBER = true; // enables layerwise support structure readout
-//  Enable::INTT_SUPPORT = true; // enable global support structure readout
+  //  Enable::INTT_ABSORBER = true; // enables layerwise support structure readout
+  //  Enable::INTT_SUPPORT = true; // enable global support structure readout
   Enable::INTT_CELL = Enable::INTT && true;
   Enable::INTT_CLUSTER = Enable::INTT_CELL && true;
   Enable::INTT_QA = Enable::INTT_CLUSTER && Enable::QA && true;
@@ -401,7 +401,7 @@ int Fun4All_tbt_SIMPLE_EMBED(const int seg_num = 0)
   //  Enable::CEMCALBEDO = true;
 
   Enable::CEMC = true;
- // Enable::CEMC_ABSORBER = true;
+  // Enable::CEMC_ABSORBER = true;
   Enable::CEMC_CELL = Enable::CEMC && true;
   Enable::CEMC_TOWER = Enable::CEMC_CELL && true;
   Enable::CEMC_CLUSTER = Enable::CEMC_TOWER && true;
@@ -430,11 +430,11 @@ int Fun4All_tbt_SIMPLE_EMBED(const int seg_num = 0)
   Enable::EPD = false;
 
   Enable::BEAMLINE = true;
-//  Enable::BEAMLINE_ABSORBER = true;  // makes the beam line magnets sensitive volumes
-//  Enable::BEAMLINE_BLACKHOLE = true; // turns the beamline magnets into black holes
+  //  Enable::BEAMLINE_ABSORBER = true;  // makes the beam line magnets sensitive volumes
+  //  Enable::BEAMLINE_BLACKHOLE = true; // turns the beamline magnets into black holes
   Enable::ZDC = false;
-//  Enable::ZDC_ABSORBER = true;
-//  Enable::ZDC_SUPPORT = true;
+  //  Enable::ZDC_ABSORBER = true;
+  //  Enable::ZDC_SUPPORT = true;
   Enable::ZDC_TOWER = Enable::ZDC && true;
   Enable::ZDC_EVAL = Enable::ZDC_TOWER && true;
 
@@ -442,7 +442,7 @@ int Fun4All_tbt_SIMPLE_EMBED(const int seg_num = 0)
   //Enable::PLUGDOOR = true;
   //Enable::PLUGDOOR_ABSORBER = true;
 
-	//Enable::GLOBAL_RECO = true;
+  //Enable::GLOBAL_RECO = true;
   //Enable::GLOBAL_FASTSIM = true;
 
   //Enable::KFPARTICLE = true;
@@ -482,9 +482,9 @@ int Fun4All_tbt_SIMPLE_EMBED(const int seg_num = 0)
 
 		
   if (!Input::READHITS)
-  {
-    G4Setup();
-  }
+    {
+      G4Setup();
+    }
 		
 
   //------------------
@@ -537,45 +537,45 @@ int Fun4All_tbt_SIMPLE_EMBED(const int seg_num = 0)
   if (Enable::MICROMEGAS_CLUSTER) Micromegas_Clustering();
 
   if (Enable::TRACKING_TRACK)
-  {
-    Tracking_Reco();
-  }
+    {
+      Tracking_Reco();
+    }
   //-----------------
   // Global Vertexing
   //-----------------
-	/*
-  if (Enable::GLOBAL_RECO && Enable::GLOBAL_FASTSIM)
-  {
+  /*
+    if (Enable::GLOBAL_RECO && Enable::GLOBAL_FASTSIM)
+    {
     cout << "You can only enable Enable::GLOBAL_RECO or Enable::GLOBAL_FASTSIM, not both" << endl;
     gSystem->Exit(1);
-  }
-  if (Enable::GLOBAL_RECO)
-  {
+    }
+    if (Enable::GLOBAL_RECO)
+    {
     Global_Reco();
-  }
-  else if (Enable::GLOBAL_FASTSIM)
-  {
+    }
+    else if (Enable::GLOBAL_FASTSIM)
+    {
     Global_FastSim();
-  }
-*/	
+    }
+  */	
 
   //-----------------
   // Centrality Determination
   //-----------------
 
   if (Enable::CENTRALITY)
-  {
+    {
       Centrality();
-  }
+    }
 
   //-----------------
   // Calo Trigger Simulation
   //-----------------
 
   if (Enable::CALOTRIGGER)
-  {
-    CaloTrigger_Sim();
-  }
+    {
+      CaloTrigger_Sim();
+    }
 
   //---------
   // Jet reco
@@ -593,9 +593,9 @@ int Fun4All_tbt_SIMPLE_EMBED(const int seg_num = 0)
   string remove_this = ".root";
   size_t pos = outputroot.find(remove_this);
   if (pos != string::npos)
-  {
-    outputroot.erase(pos, remove_this.length());
-  }
+    {
+      outputroot.erase(pos, remove_this.length());
+    }
 
   if (Enable::TRACKING_EVAL) Tracking_Eval(outputroot + "_g4svtx_eval.root");
 
@@ -645,81 +645,81 @@ int Fun4All_tbt_SIMPLE_EMBED(const int seg_num = 0)
   InputManagers();
 
   if (Enable::PRODUCTION)
-  {
-    Production_CreateOutputDir();
-  }
+    {
+      Production_CreateOutputDir();
+    }
 
   if (Enable::DSTOUT)
-  {
-    string FullOutFile = DstOut::OutputDir + "/" + DstOut::OutputFile;
-    Fun4AllDstOutputManager *out = new Fun4AllDstOutputManager("DSTOUT", FullOutFile);
-    if (Enable::DSTOUT_COMPRESS)
     {
-      ShowerCompress();
-      DstCompress(out);
+      string FullOutFile = DstOut::OutputDir + "/" + DstOut::OutputFile;
+      Fun4AllDstOutputManager *out = new Fun4AllDstOutputManager("DSTOUT", FullOutFile);
+      if (Enable::DSTOUT_COMPRESS)
+	{
+	  ShowerCompress();
+	  DstCompress(out);
+	}
+      se->registerOutputManager(out);
     }
-    se->registerOutputManager(out);
-  }
   //-----------------
   // Event processing
   //-----------------
   if (Enable::DISPLAY)
-  {
-    DisplayOn();
+    {
+      DisplayOn();
 
-    gROOT->ProcessLine("Fun4AllServer *se = Fun4AllServer::instance();");
-    gROOT->ProcessLine("PHG4Reco *g4 = (PHG4Reco *) se->getSubsysReco(\"PHG4RECO\");");
+      gROOT->ProcessLine("Fun4AllServer *se = Fun4AllServer::instance();");
+      gROOT->ProcessLine("PHG4Reco *g4 = (PHG4Reco *) se->getSubsysReco(\"PHG4RECO\");");
 
-    cout << "-------------------------------------------------" << endl;
-    cout << "You are in event display mode. Run one event with" << endl;
-    cout << "se->run(1)" << endl;
-    cout << "Run Geant4 command with following examples" << endl;
-    gROOT->ProcessLine("displaycmd()");
+      cout << "-------------------------------------------------" << endl;
+      cout << "You are in event display mode. Run one event with" << endl;
+      cout << "se->run(1)" << endl;
+      cout << "Run Geant4 command with following examples" << endl;
+      gROOT->ProcessLine("displaycmd()");
 
-    return 0;
-  }
+      return 0;
+    }
 
-	// if we decide to use CaloCalib Class for cluster/tower level processing
+  // if we decide to use CaloCalib Class for cluster/tower level processing
 	
-	/*
-  CaloCalibEmc_Pi0 *eval_pi0 = new CaloCalibEmc_Pi0("dummy0", outputFile0);
-                                                // this call is needed for embedding
-  //eval_pi2->set_centrality_nclusters_cut(350);  // which uses more central events
-                                                // than we will for data to enhance Bkg
-                                                // to match the enhanced signal from embed
-  se->registerSubsystem(eval_pi0);
-  cout << "successful registration of pi0 " << endl;
-	*/
+  /*
+    CaloCalibEmc_Pi0 *eval_pi0 = new CaloCalibEmc_Pi0("dummy0", outputFile0);
+    // this call is needed for embedding
+    //eval_pi2->set_centrality_nclusters_cut(350);  // which uses more central events
+    // than we will for data to enhance Bkg
+    // to match the enhanced signal from embed
+    se->registerSubsystem(eval_pi0);
+    cout << "successful registration of pi0 " << endl;
+  */
 
 
-	/*
-  Fun4AllInputManager *truthCalo = new Fun4AllDstInputManager("DSTCaloTruth");
-  std::cout << "Adding truth file  " << std::endl;
-	truthCalo->AddFile(inputFile2);
-  //truthCalo -> AddListFile(truthFile,1);
-  se -> registerInputManager(truthCalo);
-	*/
+  /*
+    Fun4AllInputManager *truthCalo = new Fun4AllDstInputManager("DSTCaloTruth");
+    std::cout << "Adding truth file  " << std::endl;
+    truthCalo->AddFile(inputFile2);
+    //truthCalo -> AddListFile(truthFile,1);
+    se -> registerInputManager(truthCalo);
+  */
 
 	
   pi0ClusterAna *eval = new pi0ClusterAna("TruthParticleAna", outputFile1);
   se->registerSubsystem(eval);
-	cout << "successful analysis of truth particle " << endl;
+  cout << "successful analysis of truth particle " << endl;
 	
 
   // if we run the particle generator and use 0 it'll run forever
   // for embedding it runs forever if the repeat flag is set
   if (nEvents == 0 && !Input::HEPMC && !Input::READHITS && INPUTEMBED::REPEAT)
-  {
-    cout << "using 0 for number of events is a bad idea when using particle generators" << endl;
-    cout << "it will run forever, so I just return without running anything" << endl;
-    return 0;
-  }
+    {
+      cout << "using 0 for number of events is a bad idea when using particle generators" << endl;
+      cout << "it will run forever, so I just return without running anything" << endl;
+      return 0;
+    }
 
   // if we use a negative number of events we go back to the command line here
   if (nEvents == 0)
-  {
-    return 0;
-  }
+    {
+      return 0;
+    }
 
   se->skip(skip);
   se->run(nEvents);
@@ -737,12 +737,12 @@ int Fun4All_tbt_SIMPLE_EMBED(const int seg_num = 0)
   se->End();
   std::cout << "All done" << std::endl;
   delete se;
-	/*
-  if (Enable::PRODUCTION)
-  {
+  /*
+    if (Enable::PRODUCTION)
+    {
     Production_MoveOutput();
-  }
-	*/
+    }
+  */
   gSystem->Exit(0);
   return 0;
 }
