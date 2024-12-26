@@ -32,14 +32,17 @@ double Eta2Theta(double etaVal) {return 2.0 * atan(exp(-1.0* etaVal));}
   }
 */
 
-void super_fastmc_theta(char * outputName, int  numPions){
+void super_fastmc_theta(){
+	
+  const char * outputName = "test.root";
+  int  numPions = 1e6;
 
   //now takes input pi0 file, with fits already done, uses those fits
   //  gSystem->Load("libdirPhotons.so");
   //gSystem->Load("libPhysics.so");
 
-  float maxPt = 10.0;
-  int NumBins = 200;
+  float maxPt = 20.0;
+  int NumBins = 500;
 
   /*
     strstream cpCom;
@@ -90,11 +93,11 @@ void super_fastmc_theta(char * outputName, int  numPions){
   pipt->Reset();
   
 
-  TH3F * ptpi_pt1_dang = new TH3F("ptp_pt1_dang","",12,2.0,8.0,12,2.0,8.0,600,0,0.600);
+  TH3F * ptp_pt1_dang = new TH3F("ptp_pt1_dang","",50,1.0,20.0,50,1.0,20.0,600,0,0.600);
   
   TH1F * ratiopt = new TH1F(*pipt);
   ratiopt->SetName("ratiopt");
-  //    ratiopt->SetName(mcgpiTa->ptHist[jj][icut][idet]->GetName());
+  //ratiopt->SetName(mcgpiTa->ptHist[jj][icut][idet]->GetName());
   //ratiopt->SetDirectory(centDir);
   cout << "processing " << ratiopt->GetName() << endl; 
   //delete mcgpiTa->ptHist[jj][icut][idet];
@@ -113,7 +116,7 @@ void super_fastmc_theta(char * outputName, int  numPions){
 
   pipt->SetName("pipt");
   gampt->SetName("gampt");
-  //	  ratiopt->SetName("ratiopt");
+  //ratiopt->SetName("ratiopt");
   gampipt->SetName("gampipt");
   ratiogampipt->SetName("ratiogampipt");
   //eta stuff
@@ -219,7 +222,7 @@ void super_fastmc_theta(char * outputName, int  numPions){
 	  //		  if ((i % 100) < 78) continue;
 	}
 	      
-      if (i % 100 == 0) cout << i << " pions processed" << endl;
+      //if (i % 100 == 0) cout << i << " pions processed" << endl;
       float thetaOrig =  Eta2Theta(flat_rapidity->GetRandom());
       //f_theta->GetRandom();      
 	      
@@ -419,7 +422,10 @@ void super_fastmc_theta(char * outputName, int  numPions){
   //    gamcorr->Draw();
 
   
-  out->Write(0, TObject::kOverwrite);  
+  out->Write(0, TObject::kOverwrite);
+
+	std::cout << "Done" << std::endl;
+	gSystem->Exit(0);  
   //  out->Close();
 
   //  exit(0);
