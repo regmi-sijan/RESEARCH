@@ -1,4 +1,6 @@
-#include "pi0ClusterAna.h"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#pragma GCC diagnostic pop
 
 //Fun4all stuff
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -9,6 +11,11 @@
 #include <phool/phool.h>
 #include <ffaobjects/EventHeader.h>
 
+//truth information
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4Particle.h>
+#include <g4main/PHG4VtxPoint.h>
+
 //ROOT stuff
 #include <TH1F.h>
 #include <TH2F.h>
@@ -18,84 +25,21 @@
 #include <vector>
 #include <TTree.h>
 #include <TMath.h>
+#include <algorithm>
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+#include <queue>
+#include <unordered_map>
 
-//for emc clusters
-#include <calobase/RawCluster.h>
-#include <calobase/RawClusterContainer.h>
-#include <calobase/RawClusterUtility.h>
-#include <calobase/RawTowerGeomContainer.h>
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
-
-//for vetex information
-#include <globalvertex/GlobalVertex.h>
-#include <globalvertex/GlobalVertexMap.h>
-
-//tracking
-#include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrackMap.h>
-//#include <trackbase_historic/SvtxVertex.h>
-//#include <trackbase_historic/SvtxVertexMap.h>
-
-//truth information
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4VtxPoint.h>
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#include <HepMC/GenEvent.h>
-#include <HepMC/GenParticle.h>
-#include <HepMC/GenVertex.h>
-#include <HepMC/IteratorRange.h>
-#include <HepMC/SimpleVector.h> 
-#include <HepMC/GenParticle.h>
-#pragma GCC diagnostic pop
 #include <CLHEP/Geometry/Point3D.h>
 
-
-#include <calobase/RawCluster.h>
-#include <calobase/RawClusterContainer.h>
-#include <calobase/RawClusterUtility.h>
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
-#include <calobase/RawTowerDefs.h>
-#include <calobase/RawTowerGeomContainer.h>
-#include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfo.h>
-
-#include <algorithm>
-#include <vector>
+#include "pi0ClusterAna.h"
 
 //____________________________________________________________________________..
 pi0ClusterAna::pi0ClusterAna(const std::string &name, const std::string &outName = "pi0ClusterAnaOut"):
   SubsysReco(name)
-  , clusters_Towers(nullptr)
-  , truth_photon(nullptr)
-  , truth_pi0(nullptr)
-  //  , caloevalstack(NULL)
-  , m_eta_center()
-  , m_phi_center()
-  , m_tower_energy()
-  , m_cluster_eta()
-  , m_cluster_phi()
-  , m_cluster_e()
-  , m_cluster_chi2()
-  , m_cluster_prob()
-  , m_cluster_nTowers()
-  , alphaCut(-1.0)
-  //  , m_asym()
-  //  , m_deltaR()
-  //  , m_lead_E()
-  //  , m_sublead_E()
-  //  , m_lead_phi()
-  //  , m_lead_eta()
-  //  , m_sublead_phi()
-  //  , m_sublead_eta()
-  //  , m_pi0_E()
-  //  , m_pi0_eta()
-  //  , m_pi0_phi()
   , n_event(0)
-  , f_temp(0)
   , Outfile(outName)
 
 {
@@ -112,7 +56,6 @@ pi0ClusterAna::~pi0ClusterAna()
 int pi0ClusterAna::Init(PHCompositeNode *topNode)
 {
   n_event = 0; // initialization of event number
-
   
   std::cout << "pi0ClusterAna::Init(PHCompositeNode *topNode) Initializing" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -125,19 +68,11 @@ int pi0ClusterAna::InitRun(PHCompositeNode *topNode)
 	
   out = new TFile(Outfile.c_str(),"RECREATE");
 	
-  /*
-    Pi0_pt_eta_mass = new TH3F("Pi0_pt_eta_mass", "3D_Pi0_properties", 300, 0.0, 30, 240, -1.2, 1.2, 400, 0.0, 40);
-    Eta_pt_eta_mass = new TH3F("Eta_pt_eta_mass", "3D_Eta_properties", 300, 0.0, 30, 240, -1.2, 1.2, 400, 0.0, 40);
-    Pi0_pt = new TH1F("Pi0_pt", "Pi0_Pt", 300, 0.0, 30);
-    Eta_pt = new TH1F("Eta_pt", "Eta_Pt", 300, 0.0, 30);
-  */
-
-  //pairInvMassTotal = new TH1F("pairInvMassTotal", "invariant mass histogram", 240, 0.0, 1.2);
-	
   if (topNode != 0)
     {
       // TTree declare
       _eventTree = new TTree("_eventTree", "An event level tree info for truth particle");
+   
       // TTree branches
       _eventTree->Branch("_eventNumber", &_eventNumber, "_eventNumber/I");
       _eventTree->Branch("_nFourVector", &_nFourVector, "_nFourVector/I");
@@ -146,9 +81,10 @@ int pi0ClusterAna::InitRun(PHCompositeNode *topNode)
       _eventTree->Branch("_fv_py", _fv_py, "_fv_py[_nFourVector]/F");
       _eventTree->Branch("_fv_pz", _fv_pz, "_fv_pz[_nFourVector]/F");
       _eventTree->Branch("_fv_Eta", _fv_Eta, "_fv_Eta[_nFourVector]/F");
+      _eventTree->Branch("_parent_id", _parent_id, "_parent_id[_nFourVector]/F"); // parent id (0 for primary particle)and track id will help to track particle(s) together
       _eventTree->Branch("_primary_id", _primary_id, "_primary_id[_nFourVector]/F"); // this is same for both primary and secondary particles
-      _eventTree->Branch("_pid_primary", _pid_primary, "_pid_primary[_nFourVector]/F"); // this is pid of primary particles
-      _eventTree->Branch("_pid_secondary", _pid_secondary, "_pid_secondary[_nFourVector]/F"); // this is pid for secondar particles
+      _eventTree->Branch("_track_id", _track_id, "_track_id[_nFourVector]/F"); // save track id to check if two particle have same immediate parent
+      _eventTree->Branch("_pid_particle", _pid_particle, "_pid_particle[_nFourVector]/F"); // this is pid of particle for both primary and secondary particles
       _eventTree->Branch("_embedding", _embedding, "_embedding[_nFourVector]/F"); // indicatior (flag) to differentiate embedded particles with others
     }
 
@@ -169,9 +105,35 @@ int pi0ClusterAna::process_event(PHCompositeNode *topNode)
       std::cout << PHWHERE << "pi0ClusterAna::process_event Could not find node G4TruthInfo"  << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-   
+
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  // we can embed multiple events and any number of them but make sure to embed eta meson at first
+  // since, we do not have eta meson as primary particle we can track start of embedding tracking first eta meson
+  // in macro we have to keep eta meson at the very last, that makes sure eta meson comes first here
+  // primary id is same for primary and all secondary particle(s) means they belong to same parent (primary particle)
+  // to see parent particle and daughter particle connection in secondary particle, we match "track id" of parent particle with "parent id" of daughter particle
+	
+
+  // save the information so that we can re-trace it later
+  // we can save only track id and flag to check if it is embedded or not
+  // this will be for all particles, wether primary or secondary
+  // we want to have final listing of track id
+  std::vector<int> ref_track_id; // this saves track id of all tracks (primary + secondary)
+  std::vector<int> _embbed_flag; // flag to indicate if it is embeded or not
+  std::vector<int> _primary_id_PRI; // number to save primary id of primary particle
+	
+  // clear vector to save information later
+  ref_track_id.clear();
+  _embbed_flag.clear();
+  _primary_id_PRI.clear();
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // we will save track id in two places (one to use to scan secondary particles and another to scan all particles at the end)
+  std::vector<int> primary_track_id_temp;	
+  primary_track_id_temp.clear();
 	
   // SCANNING PRIMARY PARTICLE RANGE
 	 
@@ -181,39 +143,31 @@ int pi0ClusterAna::process_event(PHCompositeNode *topNode)
 
   PHG4Particle *truth_pri;
 	
-  std::vector<int> primary_id; // primary id and primary track id should be same but lets keep both
-  std::vector<int> primary_track_id; // this will be one of the crucial to track final particles in list of all secondary particles
-  std::vector<int> pid;
-  std::vector<int> embbed_flag;
-	
-  primary_id.clear();
-  primary_track_id.clear();
-  pid.clear();
-  embbed_flag.clear();
-
-
-  int eta_flag = 0;	
+  bool eta_flag = false; // flag to identify first eta meson (start of embedded particles)
   for(truthIter = truthRange.first; truthIter != truthRange.second; truthIter++)
     {
       truth_pri = truthIter->second;
 			
       if ((truth_pri->get_parent_id()) != 0) {std::cout << "Secondary Particle Spotted" << std::endl; continue;}
 			
-      // update pid, primary id and track id for all primary particles (hijing and embedded as well)
-      pid.push_back(truth_pri->get_pid()); // update pid of primary particle (eta-meson in this case)
-      primary_id.push_back(truth_pri->get_primary_id()); // append primary id of the primary particle (we will use it to match with secondary particle)
-      primary_track_id.push_back(truth_pri->get_track_id()); // append track id of the primary particle (useful to identify the first match in secondary particle)
-	
+      // update track id for primary particles
+      ref_track_id.push_back(truth_pri->get_track_id());
+      primary_track_id_temp.push_back(truth_pri->get_track_id()); // to use while working with secondary particle
+			
+      // save primary id to be used later (have same dimension as embedd flag)
+      _primary_id_PRI.push_back(truth_pri->get_primary_id()); 
+
       // since we do not have eta meson as primary particle (so once eta meson is found it indicates the start of embedding particles)
-      if (((truth_pri->get_pid()) == 221)||(eta_flag == 1))
+      // we have to make sure we embed eta meson at first (just to simplify things)
+      if (((truth_pri->get_pid()) == 221) || (eta_flag == true))
 	{
-	  eta_flag = 1 ; // once we enterd into this loop we just keep it as this is the start of embeding
-	  embbed_flag.push_back(1); // indicating embedding
+	  eta_flag = true ; // once we enterd into this loop we just keep it as this is the start of embeding
+	  _embbed_flag.push_back(1); // indicating embedding
 	}
-      else {embbed_flag.push_back(0);} // for hijng events								
+      else {_embbed_flag.push_back(0);} // for hijng events								
     }
 	
-
+  std::cout << "Size of primary particle array is = " << _primary_id_PRI.size() << std::endl;
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
@@ -225,12 +179,11 @@ int pi0ClusterAna::process_event(PHCompositeNode *topNode)
 
   PHG4Particle *truth_sec;
 	
-  // vectors to store the information for ntuple
+  // vectors to store the information for all secondary particles
   std::vector<int> _pid_sec;
   std::vector<int> _parentid_sec;
   std::vector<int> _trackid_sec;
   std::vector<int> _primaryid_sec; // primary id for secondary particle must be same as primary id for primary particles (but keep both of them)
-	
 	
   _pid_sec.clear();
   _parentid_sec.clear();
@@ -252,143 +205,182 @@ int pi0ClusterAna::process_event(PHCompositeNode *topNode)
     }
 	
   // now we will finalize which one to keep and which one not-to in Ttree (we will stop when we encounter at photon, electron, positron)	 
-		
-  // using unordered_map to store elements of _parentid_sec and their indices
+
+  // Using unordered_map to store elements of _parentid_sec and their indices
   std::unordered_map<int, std::vector<size_t>> map_parentid_sec;
 
-  for (size_t i = 0; i < _parentid_sec.size(); ++i) {map_parentid_sec[_parentid_sec[i]].push_back(i);} // updating element in unordered map
-		
-  // first two vectors are to store track id in temporary manner and the third one is to store final version of track id that we need
-  std::vector<int> tmp_trackid_sec;
-  std::vector<int> temp_trackid_sec;
-  std::vector<int> final_trackid_sec; // this saves track id of all tracks we need
-
-  // Iterate over each element in primary_track_id and check if it exists in map_parentid_sec (secondary particles)
-  for (size_t i = 0; i < primary_track_id.size(); ++i) 
+  // Populate map with parent IDs and their corresponding indices
+  for (size_t i = 0; i < _parentid_sec.size(); ++i) 
     {
-      tmp_trackid_sec.clear();
-      tmp_trackid_sec.push_back(primary_track_id[i]); // update "primary track id" we will be looking at for this iteration  
+      map_parentid_sec[_parentid_sec[i]].push_back(i);
+    }
 
-      while (tmp_trackid_sec.size() > 0) // we will use until we are done with finding all the track id particles
-	{
-	  temp_trackid_sec.clear();
+  // Vectors to store track IDs (temporary and final)
+  std::vector<int> main_trackid_sec;       // Track IDs currently being processed
+  std::vector<int> temporary_trackid_sec;  // Temporary storage for new track IDs
 
-	  for (size_t j = 0; j < tmp_trackid_sec.size(); ++j)
-	    { 
-	      if (map_parentid_sec.find(tmp_trackid_sec[j]) != map_parentid_sec.end()) // trying to find a match
-		{
-		  // If there's a match, we save the trackid
-		  for (auto index : map_parentid_sec[tmp_trackid_sec[j]]) // index is the location saved in parent_id map which can map to any other vector
+  // Iterate over each primary track ID
+  for (int _Primary_Track_ID : primary_track_id_temp) 
+    {
+      main_trackid_sec.clear();
+      main_trackid_sec.push_back(_Primary_Track_ID); // Start with the primary particle
+
+      while (!main_trackid_sec.empty())	// Continue until no new track IDs are found
+	{  				
+	  temporary_trackid_sec.clear();
+
+	  // Process each track ID in the current main list
+	  for (int track_id : main_trackid_sec) 
+	    {
+	      auto it = map_parentid_sec.find(track_id);
+	      if (it != map_parentid_sec.end()) 
+		{  
+		  // If track_id has secondary particles
+		  for (size_t index : it->second) // to get index (multiple indices exists)
 		    {
-						 
-		      if (_pid_sec[index] == 221) std::cout << "pid sec, track id sec, primaryid sec, parent id sec " << _pid_sec[index] << " , " << _trackid_sec[index] << " , " << _primaryid_sec[index] << " , " << _parentid_sec[index] << std::endl;
+		      // Always save the secondary particle
+		      // if we wish to save only first electron photon and positron then we can keep these inside if statement
+		      // right now we are saving track id at final vector every time until we get 22, 11 or -11
+		      if(AllMode){ref_track_id.push_back(_trackid_sec[index]);} // save all generation of secondary particle
+									
+		      // If particle is photon (22), electron (11), or positron (-11), do NOT track further
+		      // Skip tracking deep further, but continue processing other particles
+		      if (_pid_sec[index] == 22 || _pid_sec[index] == 11 || _pid_sec[index] == -11)
+			{
+			  if (!AllMode){ref_track_id.push_back(_trackid_sec[index]);} // save only final 11, 22 and -11 of secondary particle
+			  continue;	
+			}
 
-
-		      //if (_pid_sec[index] == 221) continue; // immediately skip if there is eta meson
-						
-		      // update as a final match if it is photon, electron or positron
-		      if ((_pid_sec[index] == 22) || (_pid_sec[index] == 11) || (_pid_sec[index] == -11)) {final_trackid_sec.push_back(_trackid_sec[index]);}
-		      else {temp_trackid_sec.push_back(_trackid_sec[index]);} // we have to further dig down
+		      // continue tracking this particle if it not photon
+		      temporary_trackid_sec.push_back(_trackid_sec[index]);
 		    }
 		}
 	    }
-	  // now updating all temp_trackid_sec to tmp_trackid_sec
-	  tmp_trackid_sec.clear();
-	  for (size_t jj = 0; jj < temp_trackid_sec.size(); ++jj) {tmp_trackid_sec.push_back(temp_trackid_sec[jj]);}
+				
+	  // clear the main_trackid_sec vector before you push temp vector
+	  main_trackid_sec.clear();
+					
+	  // Move temporary_trackid_sec to main_trackid_sec for the next iteration
+	  main_trackid_sec = std::move(temporary_trackid_sec);
 	}
     }
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+  std::cout << "Size of total particles in an event is = " << ref_track_id.size() << std::endl;
+	
+  // do not save if there are sgnificantly large number of particles
+  if ((ref_track_id.size() < 1) || (ref_track_id.size() > 9900)){
+
+    std::cout << "The final size of the primary and secondary particles is/are = " << ref_track_id.size() << std::endl;
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
   // EXTRACTING THE INFORMATION FROM TRACK_ID (SECONDARY PARTICLE)
 
-  // now with the help of trackid we will extract all the information of secondary particles and save it in TTree histogram	
-	
+  // now with the help of trackid we will extract all the information of primary and secondary particles and save it in TTree histogram	
+
   // vectors to store the information for ntuple
   std::vector<float> _PX;
   std::vector<float> _PY;
   std::vector<float> _PZ;
   std::vector<float> _E;
   std::vector<float> _Eta;
-  std::vector<int> _PID_PRI;
-  std::vector<int> _PID_SEC;
+  std::vector<int> _PARENT_ID;
   std::vector<int> _PRIMARY_ID;
+  std::vector<int> _TRACK_ID;
+  std::vector<int> _PAR_PID;
   std::vector<int> _EMBEDDING_ID;
-
+  
   // preparing all vectors 
   _PX.clear();
   _PY.clear();
   _PZ.clear();
   _E.clear();
   _Eta.clear();
-  _PID_PRI.clear();
-  _PID_SEC.clear();
+  _PARENT_ID.clear();
   _PRIMARY_ID.clear();
+  _TRACK_ID.clear();
+  _PAR_PID.clear();
   _EMBEDDING_ID.clear();
 
+  // if two size matches we will continue
+  if (_embbed_flag.size() != _primary_id_PRI.size()) {std::cout << "primary id and embedded id vectors mismatch" << std::endl;}
 
-  // looping over "final_trackid_sec" trackid and extracting all the essentail information
-  for (unsigned int kk = 0; kk < final_trackid_sec.size(); kk++)
+  // Create a mapping before the loop
+  std::unordered_map<int, int> primaryIdToEmbedFlag;
+
+  for (size_t i = 0; i < _primary_id_PRI.size(); ++i) {
+    primaryIdToEmbedFlag[_primary_id_PRI[i]] = _embbed_flag[i];
+  }
+	
+  // looping over "ref_track_id" trackid and extracting all the essentail information
+  for (unsigned int kk = 0; kk < ref_track_id.size(); kk++)
     {
-      PHG4Particle *final_par = truthinfo->GetParticle(final_trackid_sec[kk]);
+      PHG4Particle *final_par = truthinfo->GetParticle(ref_track_id[kk]);
 			
       if (final_par == nullptr) {std::cout << " null pointer" << std::endl;}
-
-      if ((final_par->get_e() < 0.4) || (fabs(getEta(final_par)) > 1.1)) continue; // apply some conditions (to help to reduce the size of output data)
-      //if (fabs(getEta(final_par)) > 1.1) continue; // apply some conditions (to help to reduce the size of output data)
 		
-      auto iter_ = std::find(primary_id.begin(), primary_id.end(), final_par->get_primary_id());			
-      if (iter_ != primary_id.end()) // if we find a match
-	{
-	  int pos_ = std::distance(primary_id.begin(), iter_); // this gives the index (position) where we find a match 
-	 		
-	  _PID_PRI.push_back(pid[pos_]); // update idea of pid of primary particle
-	  _EMBEDDING_ID.push_back(embbed_flag[pos_]); // update if this came from embedding particles or not 
-
-	  _PID_SEC.push_back(final_par->get_pid()); // pid for secondary particle
-	  _PRIMARY_ID.push_back(final_par->get_primary_id()); // update the value of primary id of primary/secondary particles (same primary id means they are connected)
-	  _Eta.push_back(getEta(final_par)); // updating pseudorapidity of secondary particle
-	  _PX.push_back(final_par->get_px());
-	  _PY.push_back(final_par->get_py());
-	  _PZ.push_back(final_par->get_pz());
-	  _E.push_back(final_par->get_e());
-	}
-      else {std::cout << "There is no match in primary id (while doing GetParticle with track-id." << std::endl;}		
+      // some conditions to reduce the size of particle
+      if (fabs(getEta(final_par)) > 1.1) continue; // condition of pseudorapidity
+		
+      float _truth_pT = std::sqrt((final_par->get_px()) * (final_par->get_px()) + (final_par->get_py()) *(final_par->get_py()));
+      if (_truth_pT < 0.3) continue; // condition of pT cut
+		
+      // update all the vectors that are essentials
+      _PX.push_back(final_par->get_px());
+      _PY.push_back(final_par->get_py());
+      _PZ.push_back(final_par->get_pz());
+      _E.push_back(final_par->get_e());
+      _Eta.push_back(getEta(final_par)); // updating pseudorapidity of secondary particle		
+      _PARENT_ID.push_back(final_par->get_parent_id());
+      _PRIMARY_ID.push_back(final_par->get_primary_id());
+      _TRACK_ID.push_back(ref_track_id[kk]);
+      _PAR_PID.push_back(final_par->get_pid()); // pid for secondary particle
+	
+      // find the location of primary id to eventually get embedded flag
+      auto it = primaryIdToEmbedFlag.find(final_par->get_primary_id());
+		
+      if (it != primaryIdToEmbedFlag.end()){
+	_EMBEDDING_ID.push_back(it->second);
+      }
+      else{
+	_EMBEDDING_ID.push_back(-1); // this indicates some issue with embedding flag
+      } 
+		
     }
-
+	
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
   // SAVING IN TTREE
-	
   // updating in TTree
   _eventNumber = n_event;
-  _nFourVector = _E.size();
-
-  // if the size of vector is more than 600K (our limitation of the vector) we ignore that event
-  if (_E.size() > 50000) {std::cout << " The size of vector is = " << _E.size() << " . " << std::endl;}
-  if (_E.size() < 1) {std::cout << "Missing data in event number = " << n_event << std::endl;}
-	
-  // updating Ttree
-  if ((_E.size() > 0) && (_E.size() < 99000))
+  _nFourVector = _E.size();	
+		
+  for (int kl = 0; kl < _nFourVector; kl++) // update all vectors
     {
-      for (int kk = 0; kk < _nFourVector; kk++)
-	{
-	  // update all the branches of the Ttree
-	  // if size of four vector is zero then, we expect there is nothing inside the branches of the Ttree
-	  _fv_energy[kk] = _E[kk];
-	  _fv_px[kk] = _PX[kk];
-	  _fv_py[kk] = _PY[kk];
-	  _fv_pz[kk] = _PZ[kk];
-	  _fv_Eta[kk] = _Eta[kk];
-	  _pid_primary[kk] = _PID_PRI[kk];
-	  _pid_secondary[kk] = _PID_SEC[kk];
-	  _primary_id[kk] = _PRIMARY_ID[kk];
-	  _embedding[kk] = _EMBEDDING_ID[kk];
-	}
-    }	
-		  
+      // update all the branches of the Ttree
+      // if size of four vector is zero then, we expect there is nothing inside the branches of the Ttree
+      _fv_energy[kl] = _E[kl];
+      _fv_px[kl] = _PX[kl];
+      _fv_py[kl] = _PY[kl];
+      _fv_pz[kl] = _PZ[kl];
+      _fv_Eta[kl] = _Eta[kl];
+      _parent_id[kl] = _PARENT_ID[kl];
+      _primary_id[kl] = _PRIMARY_ID[kl];
+      _track_id[kl] = _TRACK_ID[kl];
+      _pid_particle[kl] = _PAR_PID[kl];
+      _embedding[kl] = _EMBEDDING_ID[kl];
+		
+      //std::cout << "primary id, track id, parent id , pid = " << _PRIMARY_ID[kl] << " , " << _TRACK_ID[kl] << " , " << _PARENT_ID[kl] << " , " << _PAR_PID[kl] << std::endl;
+			 
+    }
+
   n_event++; // updating event number
   _eventTree->Fill();
 
@@ -398,28 +390,8 @@ int pi0ClusterAna::process_event(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int pi0ClusterAna::ResetEvent(PHCompositeNode *topNode)
 {
-  //std::cout << "pi0ClusterAna::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
+  std::cout << "pi0ClusterAna::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
 
-  m_eta_center.clear();
-  m_phi_center.clear();
-  m_tower_energy.clear();
-  m_cluster_eta.clear();
-  m_cluster_phi.clear();
-  m_cluster_e.clear();
-  m_cluster_chi2.clear();
-  m_cluster_prob.clear();
-  m_cluster_nTowers.clear();
-  m_asym.clear();
-  m_deltaR.clear();
-  m_lead_E.clear();
-  m_sublead_E.clear();
-  m_lead_phi.clear();
-  m_lead_eta.clear();
-  m_sublead_phi.clear();
-  m_sublead_eta.clear();
-  //m_pi0_E.clear();
-  //m_pi0_eta.clear();
-  //m_pi0_phi.clear();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -436,26 +408,17 @@ int pi0ClusterAna::End(PHCompositeNode *topNode)
 {
   std::cout << "pi0ClusterAna::End(PHCompositeNode *topNode) This is the End" << std::endl;
 
-  if (topNode == 0 && f_temp)
+  if (topNode == 0)
     {
       out->Close();
-      f_temp->Close();
-      delete f_temp;
       delete out;
       return Fun4AllReturnCodes::EVENT_OK;
     }
   out->cd();
   
-  //truth_pi0 -> Write();
-  //truth_photon -> Write();
-  //clusters_Towers -> Write();
-	
   out->Write();
   out->Close();
   delete out; 
-
-  //hm -> dumpHistos(Outfile.c_str(),"UPDATE");
-
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -482,127 +445,4 @@ float pi0ClusterAna::getEta(PHG4Particle *particle)
 
   return 0.5*log((p+pz)/(p-pz));
 }
-
-
-//______________________________________________________________________________..
-void pi0ClusterAna::Loop(int nevts, TString _filename, TTree * intree)
-{
-  // set of parameters used for different selection criteria (cuts)
-  int ncluster_cut = 6000; // cut to limit the maximum number of clusters
-  float first_pt_cut = 3.0; // first photon pt cut
-  float second_pt_cut = 2.0; // second photon pt cut
-  float alpha_cut = 0.5; // energy asymetry cut
-  float delR_cut = 0.8; // cone cut
-
-  std::cout << "starting loop to make four vector and hence reconstructing invariant mass" << std::endl;
-
-  TTree * t1 = intree;
-  if (!intree)
-    {
-      TFile *f = new TFile(_filename);
-      t1 = (TTree *) f->Get("_eventTree");
-    }
-  
-  // Set Branches
-  t1->SetBranchAddress("_eventNumber", &_eventNumber);
-  t1->SetBranchAddress("_nFourVector", &_nFourVector);
-  t1->SetBranchAddress("_fv_energy", _fv_energy);
-  t1->SetBranchAddress("_fv_px", _fv_px);
-  t1->SetBranchAddress("_fv_py", _fv_py);
-  t1->SetBranchAddress("_fv_pz", _fv_pz);
-  t1->SetBranchAddress("_fv_Eta", _fv_Eta);
-  t1->SetBranchAddress("_pid_primary", _pid_primary);
-  t1->SetBranchAddress("_pid_secondary", _pid_secondary);
-
-  // pre-loop to save all the clusters LorentzVector
-
-  TLorentzVector *saveFV[10000];
-
-  //  int nEntries = (int) t1->GetEntriesFast();
-  int nEntries = (int) t1->GetEntries();
-  int nevts2 = nevts;
-
-  if (nevts < 0 || nEntries < nevts)
-    nevts2 = nEntries;
-	
-  for (int i = 0; i < nevts2; i++)
-    {
-      // load the ith instance of the TTree
-      t1->GetEntry(i);
-
-      if (i % 10000 == 0) {std::cout << "event number = " << i << std::endl;}
-
-      int nFourVector = _nFourVector;
-
-      if (nFourVector < 2) continue; // if the count of 4-vector is not 2 (min) then we can not make invariant mass plot.
-
-      if (nFourVector > ncluster_cut) continue;
-
-      // save parent ID in a separate list
-      std::vector<int> primary_pid(10000);
-      std::vector<int> secondary_pid(10000);
-
-      primary_pid.clear();
-      secondary_pid.clear();
-
-      for (int j = 0; j < nFourVector; j++)
-	{
-	  float px, py, pz, En;
-	  En = _fv_energy[j];
-	  px = _fv_px[j];
-	  py = _fv_py[j];
-	  pz = _fv_pz[j];
-
-	  saveFV[j] = new TLorentzVector();
-	  saveFV[j]->SetPxPyPzE(px, py, pz, En);
-
-	  primary_pid[j] = _pid_primary[j]; // save parent ID in separate vector
-	  secondary_pid[j] = _pid_secondary[j]; // save p-ID in separate vector
-	}
-
-      //std::cout << p_id.size() << std::endl;
-
-      TLorentzVector *pho1, *pho2;
-
-      for (int jCs = 0; jCs < nFourVector; jCs++) // outer loop
-	{
-	  pho1 = saveFV[jCs];
-			
-	  //if ((primary_pid[jCs] != 111) && (primary_pid[jCs] != 221)) continue; // ignore if primary particle is neither of pi0 or eta-meosn
-	  if (primary_pid[jCs] != 221) continue; // ignore if primary particle is neither of pi0 or eta-meosn
-	  if (secondary_pid[jCs] != 22) continue; // test of which (either of photon/lepton) we are using
-
-	  if (fabs(pho1->Pt()) < first_pt_cut)	continue;
-			
-	  // another loop to go into the saved cluster
-	  // we have removed the situation for double counting
-	  for (int kCs = jCs+1; kCs < nFourVector; kCs++)
-	    {
-	      //if (jCs == kCs) continue;
-
-	      pho2 = saveFV[kCs];
-
-	      //if ((primary_pid[kCs] != 111) && (primary_pid[kCs] != 221)) continue; // ignore if primary particle is neither of pi0 or eta-meosn
-	      if (primary_pid[kCs] != 221) continue; // ignore if primary particle is neither of pi0 or eta-meosn
-	      if (secondary_pid[kCs] != 22) continue; // test of which (either of photon/lepton) we are using
-
-	      if (fabs(pho2->Pt()) < second_pt_cut) continue;
-				
-	      alphaCut = fabs((pho1->E() - pho2->E())/(pho1->E()+ pho2->E()));
-	      if (alphaCut > alpha_cut) continue;
-
-	      if (pho1->DeltaR(*pho2) > delR_cut) continue;
-
-	      TLorentzVector pi0lv;
-	      pi0lv = *pho1 + *pho2;
-	      if (pho1->E()  > 1.0 && pho2->E() > 0.6 && fabs(pi0lv.Pt()) > 1.0)
-		{
-		  // fill the tower by tower histograms with invariant mass
-		  pairInvMassTotal->Fill(pi0lv.M());
-		}
-	    } // inner loop for clusters
-	} // outer loop for clusters
-    } // reading every event
-}
-
 

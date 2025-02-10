@@ -4,7 +4,7 @@
 #include <GlobalVariables.C>
 
 #include <DisplayOn.C>
-//#include <G4Setup_sPHENIX.C>
+#include <G4Setup_sPHENIX.C>
 #include <G4_Mbd.C>
 #include <G4_CaloTrigger.C>
 #include <G4_Centrality.C>
@@ -43,9 +43,11 @@
 
 #include <g4centrality/PHG4CentralityReco.h>
  
-#include <calib_emc_pi0/CaloCalibEmc_Pi0.h>
+//#include <calib_emc_eta/CaloCalibEmc_eta.h>
 #include <pi0clusterana/pi0ClusterAna.h>
 
+#include <iostream>
+#include <string> 
 
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libffamodules.so)
@@ -54,46 +56,61 @@ R__LOAD_LIBRARY(libffamodules.so)
 //R__LOAD_LIBRARY(libcentrality_io.so)
 //R__LOAD_LIBRARY(libg4centrality.so)
 
-R__LOAD_LIBRARY(libcalibCaloEmc_pi0.so)
+//R__LOAD_LIBRARY(libcalibCaloEmc_eta.so)
 R__LOAD_LIBRARY(libpi0ClusterAna.so)
-
 
 // For HepMC Hijing
 // try inputFile = /sphenix/sim/sim01/sphnxpro/sHijing_HepMC/sHijing_0-12fm.dat
 
 // this macro can be used to read DST file and use information for simple particle generation using different modes and embedded them
-  int Fun4All_tbt_SIMPLE_EMBED(const int seg_num = 0)
+int Fun4All_Eta_SIMPLE_EMBED(
+			     string inputFile = "DST_TRUTH_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000019-000000.root"
+			     //string inputFileList = "/sphenix/user/sregmi/WORKING_AREA/truth_par_ana/EtaDecayAna/macros/FileList/dst_truth_000100"
+			     )
 {
-  const int nEvents = 1;
+  const int nEvents = 2;
+	
+  //const int seg_num = 0;
   const int skip = 0;
   const string &outdir = ".";
-
-  // list of all input files
-  string inputFile0 = "DST_CALO_G4HIT_pythia8_pp_mb_3MHz-0000000011-";
-  //string inputFile1 = "DST_GLOBAL_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000010-";
-  string inputFile2 = "DST_TRUTH_pythia8_pp_mb_3MHz-0000000011-";
-  string inputFile3 = "DST_CALO_CLUSTER_pythia8_pp_mb_3MHz-0000000011-";
 	
-  // list of all output files
-  //string outputFile0 = "/sphenix/user/sregmi/WORKING_AREA/saved_ntuples/test_Fun4All_ntuples_cluster_run10_multiple_embedding_";
-  string outputFile1 = "/sphenix/user/sregmi/WORKING_AREA/saved_ntuples/run11_truth_ntuples/Fun4All_ntuples_truth_run11_multiple_embedding_";
+  // list of all input files
+  //string inputFile0 = "DST_CALO_G4HIT_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000019-";
+  //string inputFile1 = "DST_GLOBAL_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000019-";
+  //string inputFile2 = "DST_TRUTH_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000019-";  
+  //string inputFile3 = "DST_CALO_CLUSTER_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000019-";
+  //string inputFile4 = "DST_MBD_EPD_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000019-";
+  //string inputFile2 = "DST_BBC_G4HIT_sHijing_0_20fm_50kHz_bkg_0_20fm-0000000019-";
 
+  // input filelist
+  std::string SegNum = inputFile.substr(inputFile.length() - 10, 5); 
+  // list of all output files
+  //string outputFile0 = "/sphenix/user/sregmi/WORKING_AREA/truth_par_ana/pi0ClusterAna_ref/macros/RESULTS/test_Fun4All_ntuples_cluster_run19_multi_embedding_";
+  string outputFile1 = "/sphenix/user/sregmi/WORKING_AREA/truth_par_ana/pi0ClusterAna/RESULTS/Fun4All_ntuples_truth_run19_eta_embedding_" + SegNum + ".root";
+ 
+ 
+  std::cout << "InputFile List = " << inputFile << std::endl;
+  std::cout << "Output file = " << outputFile1 << std::endl;
+  
+  /*
   // setting all segments as per their number
-  int ynum_int = 100000+ seg_num;
+  int ynum_int = 1000000+ seg_num;
   TString yn_tstr = "";
   yn_tstr += ynum_int;
   yn_tstr.Remove(0,1);
 
   // final version of all input files
-  inputFile0 += yn_tstr.Data();
+  //inputFile0 += yn_tstr.Data();
   //inputFile1 += yn_tstr.Data();
   inputFile2 += yn_tstr.Data();
-  inputFile3 += yn_tstr.Data();
+  //inputFile3 += yn_tstr.Data();
+  //inputFile4 += yn_tstr.Data();
 	
-  inputFile0 += ".root";
+  //inputFile0 += ".root";
   //inputFile1 += ".root";
   inputFile2 += ".root";
-  inputFile3 += ".root";
+  //inputFile3 += ".root";
+  //inputFile4 += ".root";
   
   // final version of all output files 
   //outputFile0 += yn_tstr.Data();
@@ -103,17 +120,18 @@ R__LOAD_LIBRARY(libpi0ClusterAna.so)
   outputFile1 += ".root";
 	 
   cout << "running over these files" << endl;
-  cout << inputFile0 << endl;
+  //cout << inputFile0 << endl;
   //cout << inputFile1 << endl;
   cout << inputFile2 << endl;
-  cout << inputFile3 << endl;
+  //cout << inputFile3 << endl;
+  //cout << inputFile4 << endl;
 
   cout << "==============================================================================================" << endl;
 
   cout << "our output files will be as followings" << endl;
   //cout << outputFile0 << endl;
   cout << outputFile1 << endl;
-
+  */
   //===========================================================================================================
   //===========================================================================================================
 
@@ -147,14 +165,26 @@ R__LOAD_LIBRARY(libpi0ClusterAna.so)
   //INPUTREADHITS::filename[1] = inputFile1;
 
   Input::EMBED = true;
-  INPUTEMBED::filename[0] = inputFile0;  //0;
+  //INPUTEMBED::filename[0] = inputFile0;  //0;
   //INPUTEMBED::filename[1] = inputFile1;
-  INPUTEMBED::filename[2] = inputFile2;
-  INPUTEMBED::filename[3] = inputFile3;
-
+  //INPUTEMBED::filename[2] = inputFile2;
+  //INPUTEMBED::filename[3] = inputFile3;
+  
+  INPUTEMBED::filename[0] = inputFile;
+  //INPUTEMBED::listfile[0] = inputFileList; // done for input file list
+  
+  // for simple particle generator
   Input::SIMPLE = true;
   Input::SIMPLE_VERBOSITY = 0;
-  Input::SIMPLE_NUMBER = 12;
+  Input::SIMPLE_NUMBER = 1; // 12 if there are 12 particles to embedded
+
+  /*
+  // while using particle gun
+  Input::GUN = true;
+  Input::GUN_NUMBER = 1; // if you need "N" number of them
+  Input::GUN_VERBOSITY = 1;
+  */
+
 
   InputInit();
 
@@ -170,164 +200,184 @@ R__LOAD_LIBRARY(libpi0ClusterAna.so)
   if (Input::SIMPLE)
     {
       // make sure eta meson (221) is embedded at the end (this is to track it right at first) to figure out the era of embedding
-      //INPUTGENERATOR::SimpleEventGenerator[0]->add_particles("eta", 5);		
+      INPUTGENERATOR::SimpleEventGenerator[0]->add_particles("eta", 1);
 		
-      INPUTGENERATOR::SimpleEventGenerator[0]->add_particles(130,5); // K0 long
-      INPUTGENERATOR::SimpleEventGenerator[1]->add_particles(211,5); // pi+ ;; we can use pdg number of particle instead of name
-      INPUTGENERATOR::SimpleEventGenerator[2]->add_particles(310,5); // K0 short ;; we can use pdg number of particle instead of name
-      INPUTGENERATOR::SimpleEventGenerator[3]->add_particles(321,5); // K+ ;; we can use pdg number of particle instead of name
-      INPUTGENERATOR::SimpleEventGenerator[4]->add_particles(411,5); // D+ ;; we can use pdg number of particle instead of name
-      INPUTGENERATOR::SimpleEventGenerator[5]->add_particles(421,5); // D0 ;; we can use pdg number of particle instead of name
-      INPUTGENERATOR::SimpleEventGenerator[6]->add_particles(431,5); // D+ s ;; we can use pdg number of particle instead of name
-      INPUTGENERATOR::SimpleEventGenerator[7]->add_particles(-321,5); // K- ;; we can use pdg number of particle instead of name
-      INPUTGENERATOR::SimpleEventGenerator[8]->add_particles(-411,5); // D- ;; we can use pdg number of particle instead of name
-      INPUTGENERATOR::SimpleEventGenerator[9]->add_particles(-421,5); // anti D0 ;; we can use pdg number of particle instead of name
-      INPUTGENERATOR::SimpleEventGenerator[10]->add_particles(-431,5); // anti D s ;; we can use pdg number of particle instead of name		
-      INPUTGENERATOR::SimpleEventGenerator[11]->add_particles(221,5); // eta meson ;; we can use pdg number of particle instead of name
-		
-     
+      /*
+	INPUTGENERATOR::SimpleEventGenerator[0]->add_particles(130,1); // K0 long
+	INPUTGENERATOR::SimpleEventGenerator[1]->add_particles(211,1); // pi+ ;; we can use pdg number of particle instead of name
+	INPUTGENERATOR::SimpleEventGenerator[2]->add_particles(310,1); // K0 short ;; we can use pdg number of particle instead of name
+	INPUTGENERATOR::SimpleEventGenerator[3]->add_particles(321,1); // K+ ;; we can use pdg number of particle instead of name
+	INPUTGENERATOR::SimpleEventGenerator[4]->add_particles(411,1); // D+ ;; we can use pdg number of particle instead of name
+	INPUTGENERATOR::SimpleEventGenerator[5]->add_particles(421,1); // D0 ;; we can use pdg number of particle instead of name
+	INPUTGENERATOR::SimpleEventGenerator[6]->add_particles(431,1); // D+ s ;; we can use pdg number of particle instead of name
+	INPUTGENERATOR::SimpleEventGenerator[7]->add_particles(-321,1); // K- ;; we can use pdg number of particle instead of name
+	INPUTGENERATOR::SimpleEventGenerator[8]->add_particles(-411,1); // D- ;; we can use pdg number of particle instead of name
+	INPUTGENERATOR::SimpleEventGenerator[9]->add_particles(-421,1); // anti D0 ;; we can use pdg number of particle instead of name
+	INPUTGENERATOR::SimpleEventGenerator[10]->add_particles(-431,1); // anti D s ;; we can use pdg number of particle instead of name		
+	INPUTGENERATOR::SimpleEventGenerator[11]->add_particles(221,1); // eta meson ;; we can use pdg number of particle instead of name
+      */
+
       if (Input::HEPMC || Input::EMBED)
 	{
-	  //INPUTGENERATOR::SimpleEventGenerator[0]->set_reuse_global_vertex(true);
-	  INPUTGENERATOR::SimpleEventGenerator[0]->set_reuse_existing_vertex(true); 
-			    
-	  INPUTGENERATOR::SimpleEventGenerator[1]->set_reuse_existing_vertex(true);
-	  INPUTGENERATOR::SimpleEventGenerator[2]->set_reuse_existing_vertex(true);
-	  INPUTGENERATOR::SimpleEventGenerator[3]->set_reuse_existing_vertex(true);
-	  INPUTGENERATOR::SimpleEventGenerator[4]->set_reuse_existing_vertex(true);
-	  INPUTGENERATOR::SimpleEventGenerator[5]->set_reuse_existing_vertex(true);
-	  INPUTGENERATOR::SimpleEventGenerator[6]->set_reuse_existing_vertex(true);
-	  INPUTGENERATOR::SimpleEventGenerator[7]->set_reuse_existing_vertex(true);
-	  INPUTGENERATOR::SimpleEventGenerator[8]->set_reuse_existing_vertex(true);
-	  INPUTGENERATOR::SimpleEventGenerator[9]->set_reuse_existing_vertex(true);
-	  INPUTGENERATOR::SimpleEventGenerator[10]->set_reuse_existing_vertex(true);
-	  INPUTGENERATOR::SimpleEventGenerator[11]->set_reuse_existing_vertex(true);
-			
-      
+	  INPUTGENERATOR::SimpleEventGenerator[0]->set_reuse_existing_vertex(true);
 	  INPUTGENERATOR::SimpleEventGenerator[0]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
-      
-	  INPUTGENERATOR::SimpleEventGenerator[1]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
-	  INPUTGENERATOR::SimpleEventGenerator[2]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
-	  INPUTGENERATOR::SimpleEventGenerator[3]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
-	  INPUTGENERATOR::SimpleEventGenerator[4]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
-	  INPUTGENERATOR::SimpleEventGenerator[5]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
-	  INPUTGENERATOR::SimpleEventGenerator[6]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
-	  INPUTGENERATOR::SimpleEventGenerator[7]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
-	  INPUTGENERATOR::SimpleEventGenerator[8]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
-	  INPUTGENERATOR::SimpleEventGenerator[9]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
-	  INPUTGENERATOR::SimpleEventGenerator[10]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
-	  INPUTGENERATOR::SimpleEventGenerator[11]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+
+	  /*
+	    INPUTGENERATOR::SimpleEventGenerator[0]->set_reuse_existing_vertex(true);    
+	    INPUTGENERATOR::SimpleEventGenerator[1]->set_reuse_existing_vertex(true);
+	    INPUTGENERATOR::SimpleEventGenerator[2]->set_reuse_existing_vertex(true);
+	    INPUTGENERATOR::SimpleEventGenerator[3]->set_reuse_existing_vertex(true);
+	    INPUTGENERATOR::SimpleEventGenerator[4]->set_reuse_existing_vertex(true);
+	    INPUTGENERATOR::SimpleEventGenerator[5]->set_reuse_existing_vertex(true);
+	    INPUTGENERATOR::SimpleEventGenerator[6]->set_reuse_existing_vertex(true);
+	    INPUTGENERATOR::SimpleEventGenerator[7]->set_reuse_existing_vertex(true);
+	    INPUTGENERATOR::SimpleEventGenerator[8]->set_reuse_existing_vertex(true);
+	    INPUTGENERATOR::SimpleEventGenerator[9]->set_reuse_existing_vertex(true);
+	    INPUTGENERATOR::SimpleEventGenerator[10]->set_reuse_existing_vertex(true);
+	    INPUTGENERATOR::SimpleEventGenerator[11]->set_reuse_existing_vertex(true);
 			
+      
+	    INPUTGENERATOR::SimpleEventGenerator[0]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	    INPUTGENERATOR::SimpleEventGenerator[1]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	    INPUTGENERATOR::SimpleEventGenerator[2]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	    INPUTGENERATOR::SimpleEventGenerator[3]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	    INPUTGENERATOR::SimpleEventGenerator[4]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	    INPUTGENERATOR::SimpleEventGenerator[5]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	    INPUTGENERATOR::SimpleEventGenerator[6]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	    INPUTGENERATOR::SimpleEventGenerator[7]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	    INPUTGENERATOR::SimpleEventGenerator[8]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	    INPUTGENERATOR::SimpleEventGenerator[9]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	    INPUTGENERATOR::SimpleEventGenerator[10]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	    INPUTGENERATOR::SimpleEventGenerator[11]->set_existing_vertex_offset_vector(0.0, 0.0, 0.0);
+	  */
+
 	}
+      
       else
 	{
 	  INPUTGENERATOR::SimpleEventGenerator[0]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	  INPUTGENERATOR::SimpleEventGenerator[0]->set_vertex_distribution_mean(0., 0., 0.);
+	  INPUTGENERATOR::SimpleEventGenerator[0]->set_vertex_distribution_width(0.01, 0.01, 5.);
+
+	  /*
+	    INPUTGENERATOR::SimpleEventGenerator[0]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
 						
-	  INPUTGENERATOR::SimpleEventGenerator[1]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
-	  INPUTGENERATOR::SimpleEventGenerator[2]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
-	  INPUTGENERATOR::SimpleEventGenerator[3]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
-	  INPUTGENERATOR::SimpleEventGenerator[4]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
-	  INPUTGENERATOR::SimpleEventGenerator[5]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
-	  INPUTGENERATOR::SimpleEventGenerator[6]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
-	  INPUTGENERATOR::SimpleEventGenerator[7]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
-	  INPUTGENERATOR::SimpleEventGenerator[8]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
-	  INPUTGENERATOR::SimpleEventGenerator[9]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
-	  INPUTGENERATOR::SimpleEventGenerator[10]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
-	  INPUTGENERATOR::SimpleEventGenerator[11]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	    INPUTGENERATOR::SimpleEventGenerator[1]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	    INPUTGENERATOR::SimpleEventGenerator[2]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	    INPUTGENERATOR::SimpleEventGenerator[3]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	    INPUTGENERATOR::SimpleEventGenerator[4]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	    INPUTGENERATOR::SimpleEventGenerator[5]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	    INPUTGENERATOR::SimpleEventGenerator[6]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	    INPUTGENERATOR::SimpleEventGenerator[7]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	    INPUTGENERATOR::SimpleEventGenerator[8]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	    INPUTGENERATOR::SimpleEventGenerator[9]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	    INPUTGENERATOR::SimpleEventGenerator[10]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
+	    INPUTGENERATOR::SimpleEventGenerator[11]->set_vertex_distribution_function(PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus, PHG4SimpleEventGenerator::Gaus);
 			
       			
-			
-	  INPUTGENERATOR::SimpleEventGenerator[0]->set_vertex_distribution_mean(0., 0., 0.);
-			
-	  INPUTGENERATOR::SimpleEventGenerator[1]->set_vertex_distribution_mean(0., 0., 0.);
-	  INPUTGENERATOR::SimpleEventGenerator[2]->set_vertex_distribution_mean(0., 0., 0.);
-	  INPUTGENERATOR::SimpleEventGenerator[3]->set_vertex_distribution_mean(0., 0., 0.);
-	  INPUTGENERATOR::SimpleEventGenerator[4]->set_vertex_distribution_mean(0., 0., 0.);
-	  INPUTGENERATOR::SimpleEventGenerator[5]->set_vertex_distribution_mean(0., 0., 0.);
-	  INPUTGENERATOR::SimpleEventGenerator[6]->set_vertex_distribution_mean(0., 0., 0.);
-	  INPUTGENERATOR::SimpleEventGenerator[7]->set_vertex_distribution_mean(0., 0., 0.);
-	  INPUTGENERATOR::SimpleEventGenerator[8]->set_vertex_distribution_mean(0., 0., 0.);
-	  INPUTGENERATOR::SimpleEventGenerator[9]->set_vertex_distribution_mean(0., 0., 0.);
-	  INPUTGENERATOR::SimpleEventGenerator[10]->set_vertex_distribution_mean(0., 0., 0.);
-	  INPUTGENERATOR::SimpleEventGenerator[11]->set_vertex_distribution_mean(0., 0., 0.);
-			
+	    INPUTGENERATOR::SimpleEventGenerator[0]->set_vertex_distribution_mean(0., 0., 0.);			
+	    INPUTGENERATOR::SimpleEventGenerator[1]->set_vertex_distribution_mean(0., 0., 0.);
+	    INPUTGENERATOR::SimpleEventGenerator[2]->set_vertex_distribution_mean(0., 0., 0.);
+	    INPUTGENERATOR::SimpleEventGenerator[3]->set_vertex_distribution_mean(0., 0., 0.);
+	    INPUTGENERATOR::SimpleEventGenerator[4]->set_vertex_distribution_mean(0., 0., 0.);
+	    INPUTGENERATOR::SimpleEventGenerator[5]->set_vertex_distribution_mean(0., 0., 0.);
+	    INPUTGENERATOR::SimpleEventGenerator[6]->set_vertex_distribution_mean(0., 0., 0.);
+	    INPUTGENERATOR::SimpleEventGenerator[7]->set_vertex_distribution_mean(0., 0., 0.);
+	    INPUTGENERATOR::SimpleEventGenerator[8]->set_vertex_distribution_mean(0., 0., 0.);
+	    INPUTGENERATOR::SimpleEventGenerator[9]->set_vertex_distribution_mean(0., 0., 0.);
+	    INPUTGENERATOR::SimpleEventGenerator[10]->set_vertex_distribution_mean(0., 0., 0.);
+	    INPUTGENERATOR::SimpleEventGenerator[11]->set_vertex_distribution_mean(0., 0., 0.);
 
-	  INPUTGENERATOR::SimpleEventGenerator[0]->set_vertex_distribution_width(0.01, 0.01, 5.);
-			
-	  INPUTGENERATOR::SimpleEventGenerator[1]->set_vertex_distribution_width(0.01, 0.01, 5.);
-	  INPUTGENERATOR::SimpleEventGenerator[2]->set_vertex_distribution_width(0.01, 0.01, 5.);
-	  INPUTGENERATOR::SimpleEventGenerator[3]->set_vertex_distribution_width(0.01, 0.01, 5.);
-	  INPUTGENERATOR::SimpleEventGenerator[4]->set_vertex_distribution_width(0.01, 0.01, 5.);
-	  INPUTGENERATOR::SimpleEventGenerator[5]->set_vertex_distribution_width(0.01, 0.01, 5.);
-	  INPUTGENERATOR::SimpleEventGenerator[6]->set_vertex_distribution_width(0.01, 0.01, 5.);
-	  INPUTGENERATOR::SimpleEventGenerator[7]->set_vertex_distribution_width(0.01, 0.01, 5.);
-	  INPUTGENERATOR::SimpleEventGenerator[8]->set_vertex_distribution_width(0.01, 0.01, 5.);
-	  INPUTGENERATOR::SimpleEventGenerator[9]->set_vertex_distribution_width(0.01, 0.01, 5.);
-	  INPUTGENERATOR::SimpleEventGenerator[10]->set_vertex_distribution_width(0.01, 0.01, 5.);
-	  INPUTGENERATOR::SimpleEventGenerator[11]->set_vertex_distribution_width(0.01, 0.01, 5.);
-			
+	    INPUTGENERATOR::SimpleEventGenerator[0]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	    INPUTGENERATOR::SimpleEventGenerator[1]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	    INPUTGENERATOR::SimpleEventGenerator[2]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	    INPUTGENERATOR::SimpleEventGenerator[3]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	    INPUTGENERATOR::SimpleEventGenerator[4]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	    INPUTGENERATOR::SimpleEventGenerator[5]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	    INPUTGENERATOR::SimpleEventGenerator[6]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	    INPUTGENERATOR::SimpleEventGenerator[7]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	    INPUTGENERATOR::SimpleEventGenerator[8]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	    INPUTGENERATOR::SimpleEventGenerator[9]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	    INPUTGENERATOR::SimpleEventGenerator[10]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	    INPUTGENERATOR::SimpleEventGenerator[11]->set_vertex_distribution_width(0.01, 0.01, 5.);
+	  */
+
 	}
+				
       INPUTGENERATOR::SimpleEventGenerator[0]->set_eta_range(-1.1, 1.1);
-		
-      INPUTGENERATOR::SimpleEventGenerator[1]->set_eta_range(-1.1, 1.1);
-      INPUTGENERATOR::SimpleEventGenerator[2]->set_eta_range(-1.1, 1.1);
-      INPUTGENERATOR::SimpleEventGenerator[3]->set_eta_range(-1.1, 1.1);
-      INPUTGENERATOR::SimpleEventGenerator[4]->set_eta_range(-1.1, 1.1);
-      INPUTGENERATOR::SimpleEventGenerator[5]->set_eta_range(-1.1, 1.1);
-      INPUTGENERATOR::SimpleEventGenerator[6]->set_eta_range(-1.1, 1.1);
-      INPUTGENERATOR::SimpleEventGenerator[7]->set_eta_range(-1.1, 1.1);
-      INPUTGENERATOR::SimpleEventGenerator[8]->set_eta_range(-1.1, 1.1);
-      INPUTGENERATOR::SimpleEventGenerator[9]->set_eta_range(-1.1, 1.1);
-      INPUTGENERATOR::SimpleEventGenerator[10]->set_eta_range(-1.1, 1.1);
-      INPUTGENERATOR::SimpleEventGenerator[11]->set_eta_range(-1.1, 1.1);
-		
-
       INPUTGENERATOR::SimpleEventGenerator[0]->set_phi_range(-M_PI, M_PI);
-		
-      INPUTGENERATOR::SimpleEventGenerator[1]->set_phi_range(-M_PI, M_PI);
-      INPUTGENERATOR::SimpleEventGenerator[2]->set_phi_range(-M_PI, M_PI);
-      INPUTGENERATOR::SimpleEventGenerator[3]->set_phi_range(-M_PI, M_PI);
-      INPUTGENERATOR::SimpleEventGenerator[4]->set_phi_range(-M_PI, M_PI);
-      INPUTGENERATOR::SimpleEventGenerator[5]->set_phi_range(-M_PI, M_PI);
-      INPUTGENERATOR::SimpleEventGenerator[6]->set_phi_range(-M_PI, M_PI);
-      INPUTGENERATOR::SimpleEventGenerator[7]->set_phi_range(-M_PI, M_PI);
-      INPUTGENERATOR::SimpleEventGenerator[8]->set_phi_range(-M_PI, M_PI);
-      INPUTGENERATOR::SimpleEventGenerator[9]->set_phi_range(-M_PI, M_PI);
-      INPUTGENERATOR::SimpleEventGenerator[10]->set_phi_range(-M_PI, M_PI);
-      INPUTGENERATOR::SimpleEventGenerator[11]->set_phi_range(-M_PI, M_PI);
-		
-
-      INPUTGENERATOR::SimpleEventGenerator[0]->set_pt_range(1, 20);
-		
-      INPUTGENERATOR::SimpleEventGenerator[1]->set_pt_range(1, 20);
-      INPUTGENERATOR::SimpleEventGenerator[2]->set_pt_range(1, 20);
-      INPUTGENERATOR::SimpleEventGenerator[3]->set_pt_range(1, 20);
-      INPUTGENERATOR::SimpleEventGenerator[4]->set_pt_range(1, 20);
-      INPUTGENERATOR::SimpleEventGenerator[5]->set_pt_range(1, 20);
-      INPUTGENERATOR::SimpleEventGenerator[6]->set_pt_range(1, 20);
-      INPUTGENERATOR::SimpleEventGenerator[7]->set_pt_range(1, 20);
-      INPUTGENERATOR::SimpleEventGenerator[8]->set_pt_range(1, 20);
-      INPUTGENERATOR::SimpleEventGenerator[9]->set_pt_range(1, 20);
-      INPUTGENERATOR::SimpleEventGenerator[10]->set_pt_range(1, 20);
-      INPUTGENERATOR::SimpleEventGenerator[11]->set_pt_range(1, 20);
+      INPUTGENERATOR::SimpleEventGenerator[0]->set_pt_range(5, 20);
+      //INPUTGENERATOR::SimpleEventGenerator[0]->set_power_law_n(-6.5);
+ 
+      /*
+	INPUTGENERATOR::SimpleEventGenerator[0]->set_eta_range(-1.1, 1.1);		
+	INPUTGENERATOR::SimpleEventGenerator[1]->set_eta_range(-1.1, 1.1);
+	INPUTGENERATOR::SimpleEventGenerator[2]->set_eta_range(-1.1, 1.1);
+	INPUTGENERATOR::SimpleEventGenerator[3]->set_eta_range(-1.1, 1.1);
+	INPUTGENERATOR::SimpleEventGenerator[4]->set_eta_range(-1.1, 1.1);
+	INPUTGENERATOR::SimpleEventGenerator[5]->set_eta_range(-1.1, 1.1);
+	INPUTGENERATOR::SimpleEventGenerator[6]->set_eta_range(-1.1, 1.1);
+	INPUTGENERATOR::SimpleEventGenerator[7]->set_eta_range(-1.1, 1.1);
+	INPUTGENERATOR::SimpleEventGenerator[8]->set_eta_range(-1.1, 1.1);
+	INPUTGENERATOR::SimpleEventGenerator[9]->set_eta_range(-1.1, 1.1);
+	INPUTGENERATOR::SimpleEventGenerator[10]->set_eta_range(-1.1, 1.1);
+	INPUTGENERATOR::SimpleEventGenerator[11]->set_eta_range(-1.1, 1.1);
 		
 
-      INPUTGENERATOR::SimpleEventGenerator[0]->set_power_law_n(-6.5);
+	INPUTGENERATOR::SimpleEventGenerator[0]->set_phi_range(-M_PI, M_PI);		
+	INPUTGENERATOR::SimpleEventGenerator[1]->set_phi_range(-M_PI, M_PI);
+	INPUTGENERATOR::SimpleEventGenerator[2]->set_phi_range(-M_PI, M_PI);
+	INPUTGENERATOR::SimpleEventGenerator[3]->set_phi_range(-M_PI, M_PI);
+	INPUTGENERATOR::SimpleEventGenerator[4]->set_phi_range(-M_PI, M_PI);
+	INPUTGENERATOR::SimpleEventGenerator[5]->set_phi_range(-M_PI, M_PI);
+	INPUTGENERATOR::SimpleEventGenerator[6]->set_phi_range(-M_PI, M_PI);
+	INPUTGENERATOR::SimpleEventGenerator[7]->set_phi_range(-M_PI, M_PI);
+	INPUTGENERATOR::SimpleEventGenerator[8]->set_phi_range(-M_PI, M_PI);
+	INPUTGENERATOR::SimpleEventGenerator[9]->set_phi_range(-M_PI, M_PI);
+	INPUTGENERATOR::SimpleEventGenerator[10]->set_phi_range(-M_PI, M_PI);
+	INPUTGENERATOR::SimpleEventGenerator[11]->set_phi_range(-M_PI, M_PI);
 		
-      INPUTGENERATOR::SimpleEventGenerator[1]->set_power_law_n(-6.5);
-      INPUTGENERATOR::SimpleEventGenerator[2]->set_power_law_n(-6.5);
-      INPUTGENERATOR::SimpleEventGenerator[3]->set_power_law_n(-6.5);
-      INPUTGENERATOR::SimpleEventGenerator[4]->set_power_law_n(-6.5);
-      INPUTGENERATOR::SimpleEventGenerator[5]->set_power_law_n(-6.5);
-      INPUTGENERATOR::SimpleEventGenerator[6]->set_power_law_n(-6.5);
-      INPUTGENERATOR::SimpleEventGenerator[7]->set_power_law_n(-6.5);
-      INPUTGENERATOR::SimpleEventGenerator[8]->set_power_law_n(-6.5);
-      INPUTGENERATOR::SimpleEventGenerator[9]->set_power_law_n(-6.5);
-      INPUTGENERATOR::SimpleEventGenerator[10]->set_power_law_n(-6.5);
-      INPUTGENERATOR::SimpleEventGenerator[11]->set_power_law_n(-6.5);
+
+	INPUTGENERATOR::SimpleEventGenerator[0]->set_pt_range(1, 20);
+	INPUTGENERATOR::SimpleEventGenerator[1]->set_pt_range(1, 20);
+	INPUTGENERATOR::SimpleEventGenerator[2]->set_pt_range(1, 20);
+	INPUTGENERATOR::SimpleEventGenerator[3]->set_pt_range(1, 20);
+	INPUTGENERATOR::SimpleEventGenerator[4]->set_pt_range(1, 20);
+	INPUTGENERATOR::SimpleEventGenerator[5]->set_pt_range(1, 20);
+	INPUTGENERATOR::SimpleEventGenerator[6]->set_pt_range(1, 20);
+	INPUTGENERATOR::SimpleEventGenerator[7]->set_pt_range(1, 20);
+	INPUTGENERATOR::SimpleEventGenerator[8]->set_pt_range(1, 20);
+	INPUTGENERATOR::SimpleEventGenerator[9]->set_pt_range(1, 20);
+	INPUTGENERATOR::SimpleEventGenerator[10]->set_pt_range(1, 20);
+	INPUTGENERATOR::SimpleEventGenerator[11]->set_pt_range(1, 20);
 		
-	
+			
+	INPUTGENERATOR::SimpleEventGenerator[0]->set_power_law_n(-6.5);
+	INPUTGENERATOR::SimpleEventGenerator[1]->set_power_law_n(-6.5);
+	INPUTGENERATOR::SimpleEventGenerator[2]->set_power_law_n(-6.5);
+	INPUTGENERATOR::SimpleEventGenerator[3]->set_power_law_n(-6.5);
+	INPUTGENERATOR::SimpleEventGenerator[4]->set_power_law_n(-6.5);
+	INPUTGENERATOR::SimpleEventGenerator[5]->set_power_law_n(-6.5);
+	INPUTGENERATOR::SimpleEventGenerator[6]->set_power_law_n(-6.5);
+	INPUTGENERATOR::SimpleEventGenerator[7]->set_power_law_n(-6.5);
+	INPUTGENERATOR::SimpleEventGenerator[8]->set_power_law_n(-6.5);
+	INPUTGENERATOR::SimpleEventGenerator[9]->set_power_law_n(-6.5);
+	INPUTGENERATOR::SimpleEventGenerator[10]->set_power_law_n(-6.5);
+	INPUTGENERATOR::SimpleEventGenerator[11]->set_power_law_n(-6.5);
+      */
+
     }
+
+  /*
+  // particle gun
+  // if you run more than one of these Input::GUN_NUMBER > 1
+  // add the settings for other with [1], next with [2]...
+  if (Input::GUN)
+  {
+  INPUTGENERATOR::Gun[0]->AddParticle("310", 0, 1, 0);
+  INPUTGENERATOR::Gun[0]->set_vtx(0, 0, 0);
+  }
+  */
 
 
   if (Input::PILEUPRATE > 0)
@@ -344,14 +394,15 @@ R__LOAD_LIBRARY(libpi0ClusterAna.so)
   //======================
   // Write the DST
   //======================
-
-  Enable::DSTOUT = false;
-  Enable::DSTOUT_COMPRESS = false;
-  DstOut::OutputDir = outdir;
-  DstOut::OutputFile = outputFile0;
+  /*
+    Enable::DSTOUT = false;
+    Enable::DSTOUT_COMPRESS = false;
+    DstOut::OutputDir = outdir;
+    DstOut::OutputFile = outputFile0;
+  */
 
   //Option to convert DST to human command readable TTree for quick poke around the outputs
-  //  Enable::DSTREADER = true;
+  //Enable::DSTREADER = true;
 
   // turn the display on (default off)
   Enable::DISPLAY = false;
@@ -363,20 +414,20 @@ R__LOAD_LIBRARY(libpi0ClusterAna.so)
   // QA, main switch
   Enable::QA = false;
 
-  // Global options (enabled for all enables subsystems - if implemented)
-  //  Enable::ABSORBER = true;
-  //  Enable::OVERLAPCHECK = true;
-  //  Enable::VERBOSITY = 1;
+  //Global options (enabled for all enables subsystems - if implemented)
+  //Enable::ABSORBER = true;
+  //Enable::OVERLAPCHECK = true;
+  //Enable::VERBOSITY = 1;
 
-  // Enable::MBD = true;
-  // Enable::MBD_SUPPORT = true; // save hist in MBD/BBC support structure
+  //Enable::MBD = true;
+  //Enable::MBD_SUPPORT = true; // save hist in MBD/BBC support structure
   //Enable::MBDFAKE = true;  // Smeared vtx and t0, use if you don't want real MBD/BBC in simulation
 
   //Enable::PIPE = true;
   //Enable::PIPE_ABSORBER = true;
   //Enable::INTT = false;
-  //  Enable::INTT_ABSORBER = true; // enables layerwise support structure readout
-  //  Enable::INTT_SUPPORT = true; // enable global support structure readout
+  //Enable::INTT_ABSORBER = true; // enables layerwise support structure readout
+  //Enable::INTT_SUPPORT = true; // enable global support structure readout
   Enable::INTT_CELL = Enable::INTT && true;
   Enable::INTT_CLUSTER = Enable::INTT_CELL && true;
   Enable::INTT_QA = Enable::INTT_CLUSTER && Enable::QA && true;
@@ -416,8 +467,10 @@ R__LOAD_LIBRARY(libpi0ClusterAna.so)
   Enable::HCALIN_EVAL = Enable::HCALIN_CLUSTER && true;
   Enable::HCALIN_QA = Enable::HCALIN_CLUSTER && Enable::QA && true;
 
-  Enable::MAGNET = false;
-  Enable::MAGNET_ABSORBER = false;
+	
+  //Enable::MAGNET = false;
+  //Enable::MAGNET_ABSORBER = false;
+
 
   Enable::HCALOUT = false;
   Enable::HCALOUT_ABSORBER = true;
@@ -586,6 +639,7 @@ R__LOAD_LIBRARY(libpi0ClusterAna.so)
 
   if (Enable::PARTICLEFLOW) ParticleFlow();
 
+  /*
   //----------------------
   // Simulation evaluation
   //----------------------
@@ -593,9 +647,9 @@ R__LOAD_LIBRARY(libpi0ClusterAna.so)
   string remove_this = ".root";
   size_t pos = outputroot.find(remove_this);
   if (pos != string::npos)
-    {
-      outputroot.erase(pos, remove_this.length());
-    }
+  {
+  outputroot.erase(pos, remove_this.length());
+  }
 
   if (Enable::TRACKING_EVAL) Tracking_Eval(outputroot + "_g4svtx_eval.root");
 
@@ -610,16 +664,16 @@ R__LOAD_LIBRARY(libpi0ClusterAna.so)
   if (Enable::DSTREADER) G4DSTreader(outputroot + "_DSTReader.root");
 
   if (Enable::USER) UserAnalysisInit();
-
-
+  */
   
-
+  /*
   //======================
   // Run KFParticle on evt
   //======================
   if (Enable::KFPARTICLE && Input::UPSILON) KFParticle_Upsilon_Reco();
   if (Enable::KFPARTICLE && Input::DZERO) KFParticle_D0_Reco();
-
+  */
+	
   //----------------------
   // Standard QAs
   //----------------------
@@ -682,7 +736,7 @@ R__LOAD_LIBRARY(libpi0ClusterAna.so)
   // if we decide to use CaloCalib Class for cluster/tower level processing
 	
   /*
-    CaloCalibEmc_Pi0 *eval_pi0 = new CaloCalibEmc_Pi0("dummy0", outputFile0);
+    CaloCalibEmc_eta *eval_pi0 = new CaloCalibEmc_eta("dummy0", outputFile0);
     // this call is needed for embedding
     //eval_pi2->set_centrality_nclusters_cut(350);  // which uses more central events
     // than we will for data to enhance Bkg
@@ -700,11 +754,12 @@ R__LOAD_LIBRARY(libpi0ClusterAna.so)
     se -> registerInputManager(truthCalo);
   */
 
-	
-  pi0ClusterAna *eval = new pi0ClusterAna("TruthParticleAna", outputFile1);
+  
+  pi0ClusterAna *eval = new pi0ClusterAna("pi0ClusterAna", outputFile1);
+  eval->SaveAllMode(true); //"false" default means we save only final state sec. par.
   se->registerSubsystem(eval);
   cout << "successful analysis of truth particle " << endl;
-	
+
 
   // if we run the particle generator and use 0 it'll run forever
   // for embedding it runs forever if the repeat flag is set
@@ -728,7 +783,7 @@ R__LOAD_LIBRARY(libpi0ClusterAna.so)
   // QA output
   //-----
 
-  if (Enable::QA) QA_Output(outputroot + "_qa.root");
+  //if (Enable::QA) QA_Output(outputroot + "_qa.root");
 
   //-----
   // Exit

@@ -2,21 +2,25 @@
 Universe = vanilla
 
 # The argument to pass to the executable.
-Arguments = $(Process)
+#Arguments = $(Process)
+Arguments = $(col1)
 
 # Used to give jobs a directory with respect to file input and output.
-Initialdir = /sphenix/user/sregmi/WORKING_AREA/truth_par_ana/pi0ClusterAna/macros
+Initialdir = /sphenix/user/sregmi/WORKING_AREA/truth_par_ana/EtaDecayAna/macros
 
 # The executable we want to run.
-Executable = $(Initialdir)/run_loop_truth.sh
+Executable = $(Initialdir)/truthinfo.sh
 
 # The job's stdout is sent to this file.
+#Output = $(Initialdir)/log/out/$(col1).out
 Output = $(Initialdir)/log/out/$(Process).out
 
 # The job's stderr is sent to this file.
+#Error = $(Initialdir)/log/err/$(col1).err
 Error = $(Initialdir)/log/err/$(Process).err
 
 # The condor log file for this job, useful when debugging.
+#Log = /tmp/sregmi/$(col1).log
 Log = /tmp/sregmi/$(Process).log
 
 # We want email if the job completed successfully. This can
@@ -26,9 +30,9 @@ Notification = Error
 # Email address to send notification to.
 Notify_user = sr276419@ohio.edu
 
+RequestMemory = 12000MB
 
-RequestMemory = 10000MB
-
+concurrency_limits=CONCURRENCY_LIMIT_DEFAULT:1000
 
 # Preventing evicted jobs from holding up submission of other jobs
 PeriodicHold = (NumJobStarts>=1 && JobStatus == 1)
@@ -43,5 +47,6 @@ PeriodicHold = (NumJobStarts>=1 && JobStatus == 1)
 # then the job will be submitted N times.  Use the $(Process)
 # macro to make your input/output and log files unique.
 
-Queue 10000
+#Queue 20000
+Queue col1 from $(Initialdir)/new_dst_truth.list
 

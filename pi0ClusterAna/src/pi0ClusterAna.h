@@ -25,7 +25,7 @@ class TCanvas;
 
 class pi0ClusterAna : public SubsysReco
 {
- public:
+public:
 
   pi0ClusterAna(const std::string &name, const std::string &outName);
 
@@ -63,71 +63,41 @@ class pi0ClusterAna : public SubsysReco
   int Reset(PHCompositeNode * /*topNode*/) override;
 
   void Print(const std::string &what = "ALL") const override;
-
-  void Loop(int nevts, TString _filename, TTree * intree = 0);
-
-
- private:
+  
+  void SaveAllMode(bool state) // to decide if we want to save information of all secondary particle (default is false)
+  {
+    AllMode=state;
+    return;
+  }
+ 
+protected:
+  bool AllMode{false}; // "false" = save only final secondary particles
+ 
+private:
 
   float getEta(PHG4Particle *particle);
     
-  TTree *clusters_Towers;
-  TTree *truth_photon;
-  TTree *truth_pi0;
-  
-  //CaloEvalStack *caloevalstack;
-  
-  //stuff for towers and clusters
-  std::vector<float> m_eta_center;
-  std::vector<float> m_phi_center;
-  std::vector<float> m_tower_energy;
-  std::vector<float> m_cluster_eta;
-  std::vector<float> m_cluster_phi;
-  std::vector<float> m_cluster_e;
-  std::vector<float> m_cluster_chi2;
-  std::vector<float> m_cluster_prob;
-  std::vector<float> m_cluster_nTowers;
-  
-  //stuff for truth photons
-  std::vector<float> m_asym;
-  std::vector<float> m_deltaR;
-  std::vector<float> m_lead_E;
-  std::vector<float> m_sublead_E;
-  std::vector<float> m_lead_phi;
-  std::vector<float> m_lead_eta;
-  std::vector<float> m_sublead_phi;
-  std::vector<float> m_sublead_eta;
-
-
-  float alphaCut = -1.;
   int n_event;
 	
   TTree *_eventTree = nullptr;
 	
   int _eventNumber = -1;
-  int _nFourVector = -1; // store the number of clusters recorded in each event (our focus will only be in EMCal)
-  float _fv_energy[100000] = {0}; // truth energy of four vector
-  float _fv_px[100000] = {0}; // 3 of four momentum (px, py and pz) of the cluster
-  float _fv_py[100000] = {0};
-  float _fv_pz[100000] = {0};
-  float _fv_Eta[100000] = {0}; // pseudorapidity of the four vector
-  float _pid_primary[100000] = {0}; // associated primary particle
-  float _pid_secondary[100000] = {0}; // associated secondary particle
-  float _primary_id[100000] = {0}; // primary id of the particle
-  float _parent_id[100000] = {0}; // parent id of the particle
-  float _embedding[100000] = {0}; // parent id of the particle
+  int _nFourVector = -1; // store the number of clusters (truth info) recorded in each event (our focus will only be in EMCal)
+  float _fv_energy[10000] = {0}; // truth energy of four vector
+  float _fv_px[10000] = {0}; // 3 momentum (px, py and pz) of the cluster (truth particle)
+  float _fv_py[10000] = {0};
+  float _fv_pz[10000] = {0};
+  float _fv_Eta[10000] = {0}; // pseudorapidity of the four vector
+  float _pid_particle[10000]; // pid of associated particle
+  float _primary_id[10000]; // primary id of the particle
+  float _parent_id[10000]; // parent id of the particle
+  float _embedding[10000]; // parent id of the particle
+  float _track_id[10000]; // track id of particle
+  
 
   TFile *out;
-  TFile *f_temp;
-  //Fun4AllHistoManager *hm = nullptr;
 	
   std::string Outfile;
-
-  TH3F *Pi0_pt_eta_mass = nullptr;
-  TH3F *Eta_pt_eta_mass = nullptr;
-  TH1F *Pi0_pt = nullptr;
-  TH1F *Eta_pt = nullptr;
-  TH1F *pairInvMassTotal = nullptr;
 
 };
 
