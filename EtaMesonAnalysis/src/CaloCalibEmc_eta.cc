@@ -1,4 +1,3 @@
-
 #include "CaloCalibEmc_eta.h"
 
 // Calobase headers
@@ -495,23 +494,23 @@ int CaloCalibEmc_eta::End(PHCompositeNode * topNode)
 // for time being we can consider this as signal+background
 
 void CaloCalibEmc_eta::Loop(std::vector<int> desired_triggers, std::vector<double> CutParms,
-												 int nevts, TString _filename, TTree * intree)
+			    int nevts, TString _filename, TTree * intree)
 
 {
   std::cout << "Running in loop mode to get invariant mass plot" << std::endl;
   
-	// unpack cuts in the exact order as they were packed
+  // unpack cuts in the exact order as they were packed
   // cluster-level cuts
   float pt1_cut = static_cast<float>(CutParms[0]);
   float pt2_cut = static_cast<float>(CutParms[1]);
   float chi2_cut = static_cast<float>(CutParms[2]);
   
   // pair-wise cuts
-	float alpha_cut = static_cast<float>(CutParms[3]);
+  float alpha_cut = static_cast<float>(CutParms[3]);
   float delR_cut  = static_cast<float>(CutParms[4]);
   
   // event level cuts
-	int max_nCluster_cut = static_cast<int>(CutParms[5]);
+  int max_nCluster_cut = static_cast<int>(CutParms[5]);
   int min_nCluster_cut = static_cast<int>(CutParms[6]);
   float zver_cut = static_cast<float>(CutParms[7]);
 
@@ -671,23 +670,23 @@ void CaloCalibEmc_eta::Loop(std::vector<int> desired_triggers, std::vector<doubl
 // getting background (using inv mass histogram) for pi0/eta meson using Ttree
 // this code is inspired (mostly based on) from Loop function that creates fore-ground/signal
 void CaloCalibEmc_eta::Loop_Event_Mixing(std::vector<double> evt_mix_parms,
-											 std::vector<int> desired_triggers, std::vector<double> CutParms,
-											 int nevts, TString _filename, TTree * intree)
+					 std::vector<int> desired_triggers, std::vector<double> CutParms,
+					 int nevts, TString _filename, TTree * intree)
 {
-	std::cout << "Creating Combinatorial Background and  Foreground (signal)" << std::endl;
+  std::cout << "Creating Combinatorial Background and  Foreground (signal)" << std::endl;
   
-	// unpack cuts in the exact order as they were packed
+  // unpack cuts in the exact order as they were packed
   // cluster-level cuts
   float pt1_cut = static_cast<float>(CutParms[0]);
   float pt2_cut = static_cast<float>(CutParms[1]);
   float chi2_cut = static_cast<float>(CutParms[2]);
   
   // pair-wise cuts
-	float alpha_cut = static_cast<float>(CutParms[3]);
+  float alpha_cut = static_cast<float>(CutParms[3]);
   float delR_cut  = static_cast<float>(CutParms[4]);
   
   // event level cuts
-	int max_nCluster_cut = static_cast<int>(CutParms[5]);
+  int max_nCluster_cut = static_cast<int>(CutParms[5]);
   int min_nCluster_cut = static_cast<int>(CutParms[6]);
   float zver_cut = static_cast<float>(CutParms[7]);
 
@@ -696,7 +695,7 @@ void CaloCalibEmc_eta::Loop_Event_Mixing(std::vector<double> evt_mix_parms,
   int window_size = static_cast<int>(evt_mix_parms[1]);
   int del_nClus_cut = static_cast<int>(evt_mix_parms[2]);
 
-	// modify to use valid triggers only
+  // modify to use valid triggers only
   std::vector<int> valid_triggers;
   for (int trg : desired_triggers) {
     if (trg >= 0 && trg <= 63) {
@@ -717,18 +716,18 @@ void CaloCalibEmc_eta::Loop_Event_Mixing(std::vector<double> evt_mix_parms,
     {
       file = TFile::Open(_filename.Data()); // load the input root file
       if (!file || file->IsZombie())
-				{
-					std::cerr << "Error opening file " << _filename << std::endl;
-					return;
-				}
+	{
+	  std::cerr << "Error opening file " << _filename << std::endl;
+	  return;
+	}
       
-			t1 = dynamic_cast<TTree*>(file->Get("_eventTree")); // get Ttree Ntuple
+      t1 = dynamic_cast<TTree*>(file->Get("_eventTree")); // get Ttree Ntuple
       if (!t1)
-				{
-					std::cerr << "Error: TTree '_eventTree' not found in file " << _filename << std::endl;
-					file->Close();
-					return;
-				}
+	{
+	  std::cerr << "Error: TTree '_eventTree' not found in file " << _filename << std::endl;
+	  file->Close();
+	  return;
+	}
     }
 
   // Set branch addresses for NTuples
@@ -748,180 +747,180 @@ void CaloCalibEmc_eta::Loop_Event_Mixing(std::vector<double> evt_mix_parms,
   Long64_t nEntries = t1->GetEntries();
   int nevtsToProcess = (nevts < 0 || nEntries < nevts) ? nEntries : nevts;
 
-	// Structure to hold the event’s data (z-vertex and 4-vector)
+  // Structure to hold the event’s data (z-vertex and 4-vector)
   struct EventData {
     int originalIndex;
     float vertex_z;
-		int nClus;
+    int nClus;
     std::vector<TLorentzVector> clus_candidate;
   };
 
   // function to select event and build the window
-	// we will have all trigger based cuts and event level cuts in this function
-	auto SelectAndBuild = [&](int entry, EventData& out)-> bool {    
-		// get event related to entry from NTuple 
-		// we will return false if anything is not satisfied
-		t1->GetEntry(entry);
+  // we will have all trigger based cuts and event level cuts in this function
+  auto SelectAndBuild = [&](int entry, EventData& out)-> bool {    
+    // get event related to entry from NTuple 
+    // we will return false if anything is not satisfied
+    t1->GetEntry(entry);
     
-		// logic for trigger
+    // logic for trigger
     bool hasTrig = false;
-		for(int trg : valid_triggers) {
-			if(_triggerVector[trg] == 1) { hasTrig = true; break; }
+    for(int trg : valid_triggers) {
+      if(_triggerVector[trg] == 1) { hasTrig = true; break; }
     }   
-		if(!hasTrig) return false;
+    if(!hasTrig) return false;
     
-		// new we will have event-level cuts
-		// first with nCluster related cuts
+    // new we will have event-level cuts
+    // first with nCluster related cuts
     if((_nClusters > max_nCluster_cut) || (_nClusters < min_nCluster_cut)) return false;
     	
-		// z-vertex cuts        
-		float vertex_z = _vertex[2];
+    // z-vertex cuts        
+    float vertex_z = _vertex[2];
     if(std::abs(vertex_z) > zver_cut) return false;
             
-		// build cluster candidates
+    // build cluster candidates
     std::vector<TLorentzVector> list;
     list.reserve(_nClusters);
 
     // getting into all clusters for particular event        
-		for(int j = 0; j < _nClusters; ++j) {
+    for(int j = 0; j < _nClusters; ++j) {
                 
-			if(_clusterPts[j] < std::min(pt1_cut, pt2_cut)) continue;
+      if(_clusterPts[j] < std::min(pt1_cut, pt2_cut)) continue;
       if(_clusterChi2[j] > chi2_cut) continue;
                 
-			TLorentzVector v;
+      TLorentzVector v;
       v.SetPtEtaPhiE(_clusterPts[j], _clusterEtas[j], _clusterPhis[j], _clusterEnergies[j]);
       list.push_back(v);
     }
     if(list.empty()) return false;
 
     // now update everything to the structure EventData
-		out.originalIndex   = entry;
+    out.originalIndex   = entry;
     out.vertex_z    = vertex_z;
-	  out.nClus = _nClusters;
+    out.nClus = _nClusters;
     out.clus_candidate = std::move(list);
     return true;
   };
 
-	// defining sliding window to hold as many events as required
+  // defining sliding window to hold as many events as required
   // as we move along each event (as first loop is done) we keep adding newer event and remove older
 
   // lets start to build sliding window (this will be the starting point)
   std::deque<EventData> window;
-	int nextEntry = 0; // initiate the event entry
+  int nextEntry = 0; // initiate the event entry
 
   // either we fill complete window or we are not left with any event
   while(((int)window.size() < window_size) && (nextEntry < nevtsToProcess)) {
 
-		EventData ed;
-		// update to the window
-		if(SelectAndBuild(nextEntry, ed)) {window.push_back(std::move(ed));}
+    EventData ed;
+    // update to the window
+    if(SelectAndBuild(nextEntry, ed)) {window.push_back(std::move(ed));}
 		
-		// update to next entry
+    // update to next entry
     nextEntry++;
   }
 
-	// make signal/foreground and background using a moving window
+  // make signal/foreground and background using a moving window
   
-	// get until we are done with all events
-	while(!window.empty()) { 
+  // get until we are done with all events
+  while(!window.empty()) { 
             
-		// this is the primary entry (or first entry)
-		const EventData prim = window.front(); 
+    // this is the primary entry (or first entry)
+    const EventData prim = window.front(); 
            
-		// primary with primary gives signal and primary with others gets background
-		// "prim" is the reference event and "mix" is moving event
+    // primary with primary gives signal and primary with others gets background
+    // "prim" is the reference event and "mix" is moving event
     for(const auto& mix : window) {
                 
-			bool isSignal = (mix.originalIndex == prim.originalIndex); // boolean for signal
+      bool isSignal = (mix.originalIndex == prim.originalIndex); // boolean for signal
       if(!isSignal) {
-				// background-specific cuts
+	// background-specific cuts
         if(std::abs(prim.vertex_z - mix.vertex_z) > diff_zver_cut) continue;
         if(std::abs(prim.nClus - mix.nClus) > del_nClus_cut) continue;
       }
 
-			// cluster-pair loops with in and with other events
-			for (std::size_t i1 = 0; i1 < prim.clus_candidate.size(); ++i1) {
+      // cluster-pair loops with in and with other events
+      for (std::size_t i1 = 0; i1 < prim.clus_candidate.size(); ++i1) {
 
-			  const auto& pho1 = prim.clus_candidate[i1];
+	const auto& pho1 = prim.clus_candidate[i1];
 				
-				if(pho1.Pt() < pt1_cut) continue; // first pT cut(s)
+	if(pho1.Pt() < pt1_cut) continue; // first pT cut(s)
 
-				// decide where our inner loop begins
-				// for signal we do not want to double count but for background there is no possibility of double counting
-				std::size_t jStart = 0;
-				if (isSignal) {jStart = i1 + 1;} // setting correct place for starting location
+	// decide where our inner loop begins
+	// for signal we do not want to double count but for background there is no possibility of double counting
+	std::size_t jStart = 0;
+	if (isSignal) {jStart = i1 + 1;} // setting correct place for starting location
 
-				// starting inner loop (from correct location)
-				for (std::size_t i2 = jStart; i2 < mix.clus_candidate.size(); ++i2) {
+	// starting inner loop (from correct location)
+	for (std::size_t i2 = jStart; i2 < mix.clus_candidate.size(); ++i2) {
 
-					const auto& pho2 = mix.clus_candidate[i2];
+	  const auto& pho2 = mix.clus_candidate[i2];
 					
-					if(pho2.Pt() < pt2_cut) continue; // second pT cut(s)
+	  if(pho2.Pt() < pt2_cut) continue; // second pT cut(s)
 					
-					// energy assymetry cut
+	  // energy assymetry cut
           float alpha = std::abs(pho1.E() - pho2.E()) / (pho1.E() + pho2.E());
           if(alpha > alpha_cut) continue;
           
-					// delR cut(s)
-					if (pho1.DeltaR(pho2) > delR_cut) continue;
+	  // delR cut(s)
+	  if (pho1.DeltaR(pho2) > delR_cut) continue;
 
           // combine two photon pairs to make meson candidate
-					TLorentzVector MesonCandidate = pho1 + pho2;
+	  TLorentzVector MesonCandidate = pho1 + pho2;
 		
-					double deltaPhi = pho1.Phi() - pho2.Phi();
-					double deltaEta = pho1.Eta() - pho2.Eta();
+	  double deltaPhi = pho1.Phi() - pho2.Phi();
+	  double deltaEta = pho1.Eta() - pho2.Eta();
           
-					if (deltaPhi > M_PI)  deltaPhi -= 2 * M_PI;
-					if (deltaPhi < -M_PI) deltaPhi += 2 * M_PI;
+	  if (deltaPhi > M_PI)  deltaPhi -= 2 * M_PI;
+	  if (deltaPhi < -M_PI) deltaPhi += 2 * M_PI;
           
-					double pairPt = MesonCandidate.Pt();
-					double deltaR = pho1.DeltaR(pho2);
-					if(MesonCandidate.M() < 0.02) continue;
+	  double pairPt = MesonCandidate.Pt();
+	  double deltaR = pho1.DeltaR(pho2);
+	  if(MesonCandidate.M() < 0.02) continue;
           
-					// fill all histogram for all signal/foreground
-					if(isSignal) {
-						pairInvMassTotal->Fill(MesonCandidate.M());
-						pairInvMassPtEta->Fill(MesonCandidate.M(), MesonCandidate.Pt(), MesonCandidate.Eta());
-						pairInvMassPtdelR->Fill(MesonCandidate.M(), MesonCandidate.Pt(), deltaR);
-						pairpTDelPhiDelEta->Fill(MesonCandidate.Pt(), deltaPhi, deltaEta);
-						DelR_pairpT_f->Fill(deltaR, pairPt);
+	  // fill all histogram for all signal/foreground
+	  if(isSignal) {
+	    pairInvMassTotal->Fill(MesonCandidate.M());
+	    pairInvMassPtEta->Fill(MesonCandidate.M(), MesonCandidate.Pt(), MesonCandidate.Eta());
+	    pairInvMassPtdelR->Fill(MesonCandidate.M(), MesonCandidate.Pt(), deltaR);
+	    pairpTDelPhiDelEta->Fill(MesonCandidate.Pt(), deltaPhi, deltaEta);
+	    DelR_pairpT_f->Fill(deltaR, pairPt);
           }
 
-					// fill all histogram for event mixing background
-					else {
-						pairInvMassTotalBkgd->Fill(MesonCandidate.M());
-						pairInvMassPtEtaBkgd->Fill(MesonCandidate.M(), MesonCandidate.Pt(), MesonCandidate.Eta());
-						pairInvMassPtdelRBkgd->Fill(MesonCandidate.M(), MesonCandidate.Pt(), deltaR);
-						pairpTDelPhiDelEtaBkgd->Fill(pairPt, deltaPhi, deltaEta);
-						DelR_pairpT_b->Fill(deltaR, pairPt);
+	  // fill all histogram for event mixing background
+	  else {
+	    pairInvMassTotalBkgd->Fill(MesonCandidate.M());
+	    pairInvMassPtEtaBkgd->Fill(MesonCandidate.M(), MesonCandidate.Pt(), MesonCandidate.Eta());
+	    pairInvMassPtdelRBkgd->Fill(MesonCandidate.M(), MesonCandidate.Pt(), deltaR);
+	    pairpTDelPhiDelEtaBkgd->Fill(pairPt, deltaPhi, deltaEta);
+	    DelR_pairpT_b->Fill(deltaR, pairPt);
           }
         
-				} // second photon loop
+	} // second photon loop
       
-			} // first photon loop
+      } // first photon loop
             
-		} // slide window loop
+    } // slide window loop
     
-		// remove primary first event in slide-window
+    // remove primary first event in slide-window
     window.pop_front();
     
-		// Refill one new passing event if available
+    // Refill one new passing event if available
     while(((int)window.size() < window_size) && (nextEntry < nevtsToProcess)) {
-        EventData ed;
+      EventData ed;
         
-				if(SelectAndBuild(nextEntry, ed)) {window.push_back(std::move(ed));} // update next eligible event
-        nextEntry++;
+      if(SelectAndBuild(nextEntry, ed)) {window.push_back(std::move(ed));} // update next eligible event
+      nextEntry++;
 				
-				if(nextEntry%10000 == 0){std::cout << nextEntry << " th event running." << std::endl;}
+      if(nextEntry%10000 == 0){std::cout << nextEntry << " th event running." << std::endl;}
     }
 	
-	} // end of event
+  } // end of event
 	
-	// clean/remove file	
+  // clean/remove file	
   if(file) { 
-		file->Close(); 
-		delete file; 
-	}
+    file->Close(); 
+    delete file; 
+  }
 
 }
 
@@ -930,23 +929,23 @@ void CaloCalibEmc_eta::Loop_Event_Mixing(std::vector<double> evt_mix_parms,
 // getting background (using inv mass histogram) for pi0/eta meson using Ttree
 // this code is inspired (mostly based on) from Loop function that creates fore-ground
 void CaloCalibEmc_eta::Loop_Event_Mixing_Old(std::vector<double> evt_mix_parms,
-											 std::vector<int> desired_triggers, std::vector<double> CutParms,
-											 int nevts, TString _filename, TTree * intree)
+					     std::vector<int> desired_triggers, std::vector<double> CutParms,
+					     int nevts, TString _filename, TTree * intree)
 {
   std::cout << "Creating Combinatorial Background based on Event Mixing. This will create Signal/Foreground as well." << std::endl;
 
-	// unpack cuts in the exact order as they were packed
+  // unpack cuts in the exact order as they were packed
   // cluster-level cuts
   float pt1_cut = static_cast<float>(CutParms[0]);
   float pt2_cut = static_cast<float>(CutParms[1]);
   float chi2_cut = static_cast<float>(CutParms[2]);
   
   // pair-wise cuts
-	float alpha_cut = static_cast<float>(CutParms[3]);
+  float alpha_cut = static_cast<float>(CutParms[3]);
   float delR_cut  = static_cast<float>(CutParms[4]);
   
   // event level cuts
-	int max_nCluster_cut = static_cast<int>(CutParms[5]);
+  int max_nCluster_cut = static_cast<int>(CutParms[5]);
   int min_nCluster_cut = static_cast<int>(CutParms[6]);
   float zver_cut = static_cast<float>(CutParms[7]);
 
@@ -955,7 +954,7 @@ void CaloCalibEmc_eta::Loop_Event_Mixing_Old(std::vector<double> evt_mix_parms,
   int bckgnd_evnts = static_cast<int>(evt_mix_parms[1]);
   int del_nClus_cut = static_cast<int>(evt_mix_parms[2]);
 
-	// modify to use valid triggers only
+  // modify to use valid triggers only
   std::vector<int> valid_triggers;
   for (int trg : desired_triggers) {
     if (trg >= 0 && trg <= 63) {
@@ -969,35 +968,35 @@ void CaloCalibEmc_eta::Loop_Event_Mixing_Old(std::vector<double> evt_mix_parms,
     return;
   }
 
-	// making vectors that has TLorentz vectors
-	std::vector<TLorentzVector> savClusLV1;
-	std::vector<TLorentzVector> savClusLV2;
+  // making vectors that has TLorentz vectors
+  std::vector<TLorentzVector> savClusLV1;
+  std::vector<TLorentzVector> savClusLV2;
 
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   TTree * t1 = intree;
   if (!intree)
-  {
-	 TFile *f = new TFile(_filename);
-   t1 = (TTree *) f->Get("_eventTree");
-  }
+    {
+      TFile *f = new TFile(_filename);
+      t1 = (TTree *) f->Get("_eventTree");
+    }
 
-	// Set Branches
+  // Set Branches
   t1->SetBranchAddress("_eventNumber", &_eventNumber);
   t1->SetBranchAddress("_nClusters", &_nClusters);
   t1->SetBranchAddress("_triggerVector", _triggerVector); // 64 sized array
-	//t1->SetBranchAddress("_nCentrality", &_nCentrality);
+  //t1->SetBranchAddress("_nCentrality", &_nCentrality);
   //t1->SetBranchAddress("_clusterIDs", _clusterIDs);
-	t1->SetBranchAddress("_vertex", _vertex); // contains co-ordinates of global-vertex	
+  t1->SetBranchAddress("_vertex", _vertex); // contains co-ordinates of global-vertex	
   t1->SetBranchAddress("_clusterEnergies", _clusterEnergies);
   t1->SetBranchAddress("_clusterPts", _clusterPts);
   t1->SetBranchAddress("_clusterEtas", _clusterEtas);
   t1->SetBranchAddress("_clusterPhis", _clusterPhis);
   t1->SetBranchAddress("_maxTowerEtas", _maxTowerEtas);
   t1->SetBranchAddress("_maxTowerPhis", _maxTowerPhis);
-	t1->SetBranchAddress("_clusterChi2", _clusterChi2);
+  t1->SetBranchAddress("_clusterChi2", _clusterChi2);
 
-	// getting total number of events
+  // getting total number of events
   int nEntries = (int) t1->GetEntries();
   int nevts2 = nevts;
 
@@ -1005,161 +1004,161 @@ void CaloCalibEmc_eta::Loop_Event_Mixing_Old(std::vector<double> evt_mix_parms,
 	
 
   for (int i1 = 0; i1 < nevts2; i1++) // iterating for each/every event(s)
-  {
-    // load the i1_th instance of the TTree
-    t1->GetEntry(i1);
+    {
+      // load the i1_th instance of the TTree
+      t1->GetEntry(i1);
 
-    if (i1 % 1000 == 0) {std::cout << "event number = " << i1 << std::endl;}
+      if (i1 % 1000 == 0) {std::cout << "event number = " << i1 << std::endl;}
 
       // Event loop check for trigger
       bool triggered = false;
       for (int trg : valid_triggers) {
 			
-				if (_triggerVector[trg] == 1) {
-					triggered = true;
-					break;
-				}
+	if (_triggerVector[trg] == 1) {
+	  triggered = true;
+	  break;
+	}
       }
 			
       // if we do not find any trigger then, skip the rest of the loop
       if (!triggered) continue;
 
-		// ncluster cuts (this can always be treated similar to centrality cut)
-		int nClusters1 = _nClusters;
-		if ((nClusters1 > max_nCluster_cut) || (nClusters1 < min_nCluster_cut)) continue; // will adjust this to look either peripheral or central event
+      // ncluster cuts (this can always be treated similar to centrality cut)
+      int nClusters1 = _nClusters;
+      if ((nClusters1 > max_nCluster_cut) || (nClusters1 < min_nCluster_cut)) continue; // will adjust this to look either peripheral or central event
 
-		float vertex_z1 = _vertex[2]; // co-ordinates are 0, 1, 2 for "x" "y" and "z" respectively
-		if (abs(vertex_z1) > zver_cut) continue;
+      float vertex_z1 = _vertex[2]; // co-ordinates are 0, 1, 2 for "x" "y" and "z" respectively
+      if (abs(vertex_z1) > zver_cut) continue;
 
-		/*
-    float Cent1 = _nCentrality; // centraity of the event
-		if ((Cent1 < min_cent_cut) || (Cent1 > max_cent_cut)) continue; // centrality cut
-		*/
+      /*
+	float Cent1 = _nCentrality; // centraity of the event
+	if ((Cent1 < min_cent_cut) || (Cent1 > max_cent_cut)) continue; // centrality cut
+      */
 
-		// saving all cluster in vector of TLorentz Vector
-		savClusLV1.clear();
-		for (int i = 0; i < nClusters1; i++) // for each cluster in event
-    {
-			if (_clusterPts[i] < std::min(pt1_cut, pt2_cut)) continue;
-			if (_clusterChi2[i] > chi2_cut) continue; 
+      // saving all cluster in vector of TLorentz Vector
+      savClusLV1.clear();
+      for (int i = 0; i < nClusters1; i++) // for each cluster in event
+	{
+	  if (_clusterPts[i] < std::min(pt1_cut, pt2_cut)) continue;
+	  if (_clusterChi2[i] > chi2_cut) continue; 
 
-		  TLorentzVector LV_Clus;
+	  TLorentzVector LV_Clus;
 
-		  LV_Clus.SetPtEtaPhiE(_clusterPts[i], _clusterEtas[i], _clusterPhis[i], _clusterEnergies[i]);
-		  savClusLV1.push_back(LV_Clus);
-		 }
+	  LV_Clus.SetPtEtaPhiE(_clusterPts[i], _clusterEtas[i], _clusterPhis[i], _clusterEnergies[i]);
+	  savClusLV1.push_back(LV_Clus);
+	}
 
-		for (int i2 = i1 - bckgnd_evnts; i2 < i1 + bckgnd_evnts; i2++) // we take some events up and down each wrt to event of our concern
-			{
-				if (i2 < 0) continue; // discard negative event number (which does not exist at all)
-				if (i2 > nevts2) continue; // when max event number is reached, we exit our iteration
+      for (int i2 = i1 - bckgnd_evnts; i2 < i1 + bckgnd_evnts; i2++) // we take some events up and down each wrt to event of our concern
+	{
+	  if (i2 < 0) continue; // discard negative event number (which does not exist at all)
+	  if (i2 > nevts2) continue; // when max event number is reached, we exit our iteration
 	
-				t1->GetEntry(i2);
+	  t1->GetEntry(i2);
 
-				// Event loop check for trigger
-				bool triggered2 = false;
-				for (int trg : valid_triggers) {
+	  // Event loop check for trigger
+	  bool triggered2 = false;
+	  for (int trg : valid_triggers) {
 			
-					if (_triggerVector[trg] == 1) {
-						triggered2 = true;
-						break;
-					}
-				}
+	    if (_triggerVector[trg] == 1) {
+	      triggered2 = true;
+	      break;
+	    }
+	  }
 			
-				// if we do not find any trigger then, skip the rest of the loop
-				if (!triggered2) continue;
+	  // if we do not find any trigger then, skip the rest of the loop
+	  if (!triggered2) continue;
 
-				int nClusters2 = _nClusters;
-				if ((nClusters2 > max_nCluster_cut) || (nClusters2 < min_nCluster_cut)) continue;
+	  int nClusters2 = _nClusters;
+	  if ((nClusters2 > max_nCluster_cut) || (nClusters2 < min_nCluster_cut)) continue;
 
-				float vertex_z2 = _vertex[2]; // co-ordinates are 0, 1, 2
-				if (abs(vertex_z2) > zver_cut) continue;
+	  float vertex_z2 = _vertex[2]; // co-ordinates are 0, 1, 2
+	  if (abs(vertex_z2) > zver_cut) continue;
 
-				if (abs(vertex_z1 - vertex_z2) > diff_zver_cut) continue; // ignore those events if their z-vertex is far from 5 units
+	  if (abs(vertex_z1 - vertex_z2) > diff_zver_cut) continue; // ignore those events if their z-vertex is far from 5 units
 				
-				// looking for similar cluster (not significantly relavant for p+p collision)
-				if (abs(nClusters2 - nClusters1) > del_nClus_cut) continue;
+	  // looking for similar cluster (not significantly relavant for p+p collision)
+	  if (abs(nClusters2 - nClusters1) > del_nClus_cut) continue;
 
-				/*
-				float Cent2 = _nCentrality; // centraity of the event
-				if ((Cent2 < min_cent_cut) || (Cent2 > max_cent_cut)) continue; // centrality cut
+	  /*
+	    float Cent2 = _nCentrality; // centraity of the event
+	    if ((Cent2 < min_cent_cut) || (Cent2 > max_cent_cut)) continue; // centrality cut
 				
-				if (abs(Cent1-Cent2) > cent_range) continue; // we use two events with almost same centrality
-				*/
+	    if (abs(Cent1-Cent2) > cent_range) continue; // we use two events with almost same centrality
+	  */
 
-				// saving all cluster in vector of TLorentz Vector
-				savClusLV2.clear();
-				for (int j = 0; j < nClusters2; j++) // for each cluster in event
-				 {
-					if (_clusterPts[j] < std::min(pt1_cut, pt2_cut)) continue;
-					if (_clusterChi2[j] > chi2_cut) continue; 
+	  // saving all cluster in vector of TLorentz Vector
+	  savClusLV2.clear();
+	  for (int j = 0; j < nClusters2; j++) // for each cluster in event
+	    {
+	      if (_clusterPts[j] < std::min(pt1_cut, pt2_cut)) continue;
+	      if (_clusterChi2[j] > chi2_cut) continue; 
 
-					TLorentzVector LV_Clus2;
+	      TLorentzVector LV_Clus2;
 
-					LV_Clus2.SetPtEtaPhiE(_clusterPts[j], _clusterEtas[j], _clusterPhis[j], _clusterEnergies[j]);
-					savClusLV2.push_back(LV_Clus2);
-				 }
+	      LV_Clus2.SetPtEtaPhiE(_clusterPts[j], _clusterEtas[j], _clusterPhis[j], _clusterEnergies[j]);
+	      savClusLV2.push_back(LV_Clus2);
+	    }
 
 			
-				for (size_t iCs = 0; iCs < savClusLV1.size(); iCs++) // outer loop to iterate clusters
-					{
-						TLorentzVector& pho1 = savClusLV1[iCs];
+	  for (size_t iCs = 0; iCs < savClusLV1.size(); iCs++) // outer loop to iterate clusters
+	    {
+	      TLorentzVector& pho1 = savClusLV1[iCs];
 
-						if (fabs(pho1.Pt()) < pt1_cut)	continue; // first P_T cut
+	      if (fabs(pho1.Pt()) < pt1_cut)	continue; // first P_T cut
 						
-						for (size_t jCs = iCs+1; jCs < savClusLV2.size(); jCs++) // inner loop to iterate clusters
-						 {
-								TLorentzVector& pho2 = savClusLV2[jCs];
+	      for (size_t jCs = iCs+1; jCs < savClusLV2.size(); jCs++) // inner loop to iterate clusters
+		{
+		  TLorentzVector& pho2 = savClusLV2[jCs];
 
-								if (fabs(pho2.Pt()) < pt2_cut) continue; //second P_T cut
+		  if (fabs(pho2.Pt()) < pt2_cut) continue; //second P_T cut
 								
-								alphaCut = fabs((pho1.E() - pho2.E())/(pho1.E()+ pho2.E()));
-								if (alphaCut > alpha_cut) continue;	
+		  alphaCut = fabs((pho1.E() - pho2.E())/(pho1.E()+ pho2.E()));
+		  if (alphaCut > alpha_cut) continue;	
 								
-								//if ((pho1.DeltaR(pho2) > delR_cut) || (pho1.DeltaR(pho2) < 0.05))  continue;
-								if (pho1.DeltaR(pho2) > delR_cut)  continue;
+		  //if ((pho1.DeltaR(pho2) > delR_cut) || (pho1.DeltaR(pho2) < 0.05))  continue;
+		  if (pho1.DeltaR(pho2) > delR_cut)  continue;
 
-								TLorentzVector mesonlv = pho1 + pho2;
+		  TLorentzVector mesonlv = pho1 + pho2;
 
-								if ((mesonlv.M() < 0.02) || (mesonlv.Pt() < 1.0)) continue;
+		  if ((mesonlv.M() < 0.02) || (mesonlv.Pt() < 1.0)) continue;
 
-								double _delphi = pho1.Phi() - pho2.Phi();
-								double _deleta = pho1.Eta() - pho2.Eta();
-								double _pairpT = mesonlv.Pt();
-								double _delR = pho1.DeltaR(pho2);
+		  double _delphi = pho1.Phi() - pho2.Phi();
+		  double _deleta = pho1.Eta() - pho2.Eta();
+		  double _pairpT = mesonlv.Pt();
+		  double _delR = pho1.DeltaR(pho2);
 
-								if (_delphi > M_PI) {_delphi -= 2 * M_PI;}       
-								if (_delphi < -1 * M_PI) {_delphi += 2 * M_PI;}
+		  if (_delphi > M_PI) {_delphi -= 2 * M_PI;}       
+		  if (_delphi < -1 * M_PI) {_delphi += 2 * M_PI;}
 								
-								if (i1 == i2) // histogram for foreground
-								 {
+		  if (i1 == i2) // histogram for foreground
+		    {
 
-									pairInvMassTotal->Fill(mesonlv.M());
-									pairInvMassPtEta->Fill(mesonlv.M(), mesonlv.Pt(), mesonlv.Eta());
-									pairInvMassPtdelR->Fill(mesonlv.M(), mesonlv.Pt(), _delR);
+		      pairInvMassTotal->Fill(mesonlv.M());
+		      pairInvMassPtEta->Fill(mesonlv.M(), mesonlv.Pt(), mesonlv.Eta());
+		      pairInvMassPtdelR->Fill(mesonlv.M(), mesonlv.Pt(), _delR);
 
-									pairpTDelPhiDelEta->Fill(mesonlv.Pt(), _delphi, _deleta); // for foreground
-									DelR_pairpT_f->Fill(_delR, _pairpT);
+		      pairpTDelPhiDelEta->Fill(mesonlv.Pt(), _delphi, _deleta); // for foreground
+		      DelR_pairpT_f->Fill(_delR, _pairpT);
 
-		 						 }
+		    }
 
-								else if (i1 != i2) // histogram for background
-								 {
+		  else if (i1 != i2) // histogram for background
+		    {
 
-								 DelR_pairpT_b->Fill(_delR, _pairpT);
+		      DelR_pairpT_b->Fill(_delR, _pairpT);
 
-								 pairInvMassTotalBkgd->Fill(mesonlv.M());
-						 		 pairInvMassPtEtaBkgd->Fill(mesonlv.M(), mesonlv.Pt(), mesonlv.Eta());
-						 		 pairInvMassPtdelRBkgd->Fill(mesonlv.M(), mesonlv.Pt(), _delR);
-								 pairpTDelPhiDelEtaBkgd->Fill(_pairpT, _delphi, _deleta);	// for background
+		      pairInvMassTotalBkgd->Fill(mesonlv.M());
+		      pairInvMassPtEtaBkgd->Fill(mesonlv.M(), mesonlv.Pt(), mesonlv.Eta());
+		      pairInvMassPtdelRBkgd->Fill(mesonlv.M(), mesonlv.Pt(), _delR);
+		      pairpTDelPhiDelEtaBkgd->Fill(_pairpT, _delphi, _deleta);	// for background
 
-								}
-							else {std::cout << "Something is not good for event mixing function." << std::endl;} 
+		    }
+		  else {std::cout << "Something is not good for event mixing function." << std::endl;} 
 									
-						} // inner loop (cluster)
-				 } // outer loop (cluster)
-		 } // second-set of events (i2) (when i1 == i2, it makes foreground)
-	}// iterating over all events (first set :: i1)
+		} // inner loop (cluster)
+	    } // outer loop (cluster)
+	} // second-set of events (i2) (when i1 == i2, it makes foreground)
+    }// iterating over all events (first set :: i1)
 }
 
 
@@ -1167,23 +1166,23 @@ void CaloCalibEmc_eta::Loop_Event_Mixing_Old(std::vector<double> evt_mix_parms,
 // we have a flag that will make either signal (foreground) or swapped background, so this function will do either of that
 
 void CaloCalibEmc_eta::Loop_Position_Swapping(std::vector<double> pos_swap_parms,
-									 std::vector<int> desired_triggers, std::vector<double> CutParms,
-									 int nevts, TString _filename, TTree * intree)
+					      std::vector<int> desired_triggers, std::vector<double> CutParms,
+					      int nevts, TString _filename, TTree * intree)
 {
-	std::cout << "Creating Position Swapping and/or Foreground (signal)" << std::endl;
+  std::cout << "Creating Position Swapping and/or Foreground (signal)" << std::endl;
   
-	// unpack cuts in the exact order as they were packed
+  // unpack cuts in the exact order as they were packed
   // cluster-level cuts
   float pt1_cut = static_cast<float>(CutParms[0]);
   float pt2_cut = static_cast<float>(CutParms[1]);
   float chi2_cut = static_cast<float>(CutParms[2]);
   
   // pair-wise cuts
-	float alpha_cut = static_cast<float>(CutParms[3]);
+  float alpha_cut = static_cast<float>(CutParms[3]);
   float delR_cut  = static_cast<float>(CutParms[4]);
   
   // event level cuts
-	int max_nCluster_cut = static_cast<int>(CutParms[5]);
+  int max_nCluster_cut = static_cast<int>(CutParms[5]);
   int min_nCluster_cut = static_cast<int>(CutParms[6]);
   float zver_cut = static_cast<float>(CutParms[7]);
 
@@ -1194,7 +1193,7 @@ void CaloCalibEmc_eta::Loop_Position_Swapping(std::vector<double> pos_swap_parms
   float delE_bkg = static_cast<float>(pos_swap_parms[3]);
 
   
-	// modify to use valid triggers only
+  // modify to use valid triggers only
   std::vector<int> valid_triggers;
   for (int trg : desired_triggers) {
     if (trg >= 0 && trg <= 63) {

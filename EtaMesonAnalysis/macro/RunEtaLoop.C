@@ -61,17 +61,17 @@ std::vector<double> CutParms = {
 
 // converting event mixing cut parameter to vectors
 std::vector<double> EvtMixCutParms = {
-	diff_zver_cut,
-	static_cast<double> (bckgnd_evnts),
-	static_cast<double> (diff_nClus_cut)
+  diff_zver_cut,
+  static_cast<double> (bckgnd_evnts),
+  static_cast<double> (diff_nClus_cut)
 };
 
 // converting position swapping cut parameter to vectors
 std::vector<double> PosSwapParms = {
-	static_cast<double> (doSwapBkg),
-	static_cast<double> (n_Swap),
-	delR_bkg,
-	delE_bkg
+  static_cast<double> (doSwapBkg),
+  static_cast<double> (n_Swap),
+  delR_bkg,
+  delE_bkg
 };
 
 // helper function for GetTChain
@@ -111,24 +111,24 @@ enum RunMode {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void RunEtaLoop(int n_file = 1)
 {
-	// start of timer
+  // start of timer
   TStopwatch timer;
   timer.Start();
 
-	int mode = 1; // or use "0" "1" or "2"
+  int mode = 1; // or use "0" "1" or "2"
 	
-	// setting number of events we want to run
-	int nevents = -1;
+  // setting number of events we want to run
+  int nevents = -1;
 	
-	// getting input files (file-list) and output file
-	const std::string in_fname = "Run24_pp_Ntuples_";
+  // getting input files (file-list) and output file
+  const std::string in_fname = "Run24_pp_Ntuples_";
 
-	const std::string macro_loc = "/sphenix/user/sregmi/WORKING_AREA/ETA_MESON/macro";
+  const std::string macro_loc = "/sphenix/user/sregmi/WORKING_AREA/ETA_MESON/macro";
 
-	// check this and down than this to confirm input filelist
-	const std::string ifile= macro_loc + "/Run24_pp_filelist/" + in_fname + std::to_string(n_file); // input file-list
+  // check this and down than this to confirm input filelist
+  const std::string ifile= macro_loc + "/Run24_pp_filelist/" + in_fname + std::to_string(n_file); // input file-list
 	
-	const std::string ofile= macro_loc + "/RESULTS/run24_pp_photrig_evtmix_" + std::to_string(n_file) + ".root";
+  const std::string ofile= macro_loc + "/RESULTS/run24_pp_photrig_evtmix_" + std::to_string(n_file) + ".root";
 
   std::cout << " input file list " << ifile << std::endl;
   std::cout << " output file list " << ofile << std::endl;
@@ -143,28 +143,28 @@ void RunEtaLoop(int n_file = 1)
 	
   // running in different mode based on our input
   switch (mode) {
-    case kSignal:
-			calo_obj.Loop(desired_triggers, CutParms, nevents, ifile.c_str(), intree1); // creates foreground
-      break;
+  case kSignal:
+    calo_obj.Loop(desired_triggers, CutParms, nevents, ifile.c_str(), intree1); // creates foreground
+    break;
 
-    case kEventMixing:
-			calo_obj.Loop_Event_Mixing(EvtMixCutParms, desired_triggers, CutParms, nevents, ifile.c_str(), intree1);
-			//calo_obj.Loop_Event_Mixing_Old(EvtMixCutParms, desired_triggers, CutParms, nevents, ifile.c_str(), intree1);
-      break;
+  case kEventMixing:
+    calo_obj.Loop_Event_Mixing(EvtMixCutParms, desired_triggers, CutParms, nevents, ifile.c_str(), intree1);
+    //calo_obj.Loop_Event_Mixing_Old(EvtMixCutParms, desired_triggers, CutParms, nevents, ifile.c_str(), intree1);
+    break;
 
-    case kPositionSwapping:
-      calo_obj.Loop_Position_Swapping(PosSwapParms, desired_triggers, CutParms, nevents, ifile.c_str(), intree1);
-      break;
+  case kPositionSwapping:
+    calo_obj.Loop_Position_Swapping(PosSwapParms, desired_triggers, CutParms, nevents, ifile.c_str(), intree1);
+    break;
 
-    default:
-      std::cerr << "Unknown mode: " << mode << "\n";
-      std::exit(1);
+  default:
+    std::cerr << "Unknown mode: " << mode << "\n";
+    std::exit(1);
   }
 	
   calo_obj.End(0);
   std::cout << "All Done" << std::endl;
 	
-	// print elapsed time
+  // print elapsed time
   timer.Stop();
   std::cout << "  Wall‑clock time : " << timer.RealTime() << std::endl;
   std::cout << "  CPU time        : " << timer.CpuTime()  << std::endl;
