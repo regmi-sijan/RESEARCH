@@ -4,6 +4,8 @@
 #define CALOCALIBEMC_ETA_H
 
 #include <fun4all/SubsysReco.h>
+#include <globalvertex/GlobalVertex.h>
+#include <deque>
 
 #include <string>
 
@@ -33,17 +35,50 @@ class CaloCalibEmc_eta : public SubsysReco
 
   int End(PHCompositeNode *topNode) override;
 
-	void Loop(int nevts, TString _filename, TTree * intree);
+	void Loop(std::vector<int> desired_triggers, std::vector<double> cuts, 
+					int nevts, TString _filename, TTree * intree);
 	
-	void Loop_background_event_mixing(int nevts, TString _filename, TTree * intree);
-	
-  //void set_centrality_nclusters_cut(int n){m_cent_nclus_cut=n;}
+	void Loop_Event_Mixing(std::vector<double> evt_mix_parms, 
+					std::vector<int> desired_triggers, std::vector<double> CutParms, 
+					int nevts, TString _filename, TTree * intree);
+
+	void Loop_Event_Mixing_V2(std::vector<double> evt_mix_parms, 
+					std::vector<int> desired_triggers, std::vector<double> CutParms, 
+					int nevts, TString _filename, TTree * intree);
+
+	void Loop_Event_Mixing_Old(std::vector<double> evt_mix_parms,
+											 std::vector<int> desired_triggers, std::vector<double> CutParms,
+											 int nevts, TString _filename, TTree * intree);
+
+	void Loop_Position_Swapping(std::vector<double> pos_swap_parms, 
+					std::vector<int> desired_triggers, std::vector<double> CutParms, 
+					int nevts, TString _filename, TTree * intree);
   
+	//void set_centrality_nclusters_cut(int n){m_cent_nclus_cut=n;}
+  
+	void set_GlobalVertexType(GlobalVertex::VTXTYPE type) 
+		{
+			m_use_vertextype = true;
+			m_vertex_type = type;
+		}
+
+  void set_requireVertex(bool state)
+		{
+			reqVertex = state;
+			return;
+		}
+
  private:
-  int m_ievent = 0;
+  bool reqMinBias = true;
+  bool reqVertex = false;
+  
+	int m_ievent = 0;
   std::string m_Filename;
   TFile *cal_output = nullptr;
   std::string _caloname = "CEMC";
+
+  bool m_use_vertextype {false};
+  GlobalVertex::VTXTYPE m_vertex_type = GlobalVertex::UNDEFINED;
 
   bool m_UseTowerInfo; // decide whether to use "TowerInfo" (expt_data) or "RawTower" (sim_data)
 
@@ -68,6 +103,7 @@ class CaloCalibEmc_eta : public SubsysReco
   // TTree variables
   int _eventNumber = -1;
   int _nClusters = -1;
+  int _triggerVector[64] = {0};
 	float _nCentrality = -1.0;
 	float _vertex[3] = {0};
   float _clusterIDs[10000] = {0};
