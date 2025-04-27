@@ -8,3 +8,5 @@ HistBothRangeV1.C is working as expected but does not produce best result. We ar
 
 Update April 27, 2025
 HistBothRangeV2.C is working as expected but requires fine tune. This is different from V1 such that we directly project as per initial pairpT ranges. We are working on that to optimize this (we may modify our algorithm in code a bit).
+
+The main issue seem to be related to choice of fit function based on error (and remove over fitting and underfitting) and may be the range as well.
