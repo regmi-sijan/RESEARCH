@@ -58,10 +58,8 @@ const double MIN_PairpT = 2.0;
 
 // Predefined pT ranges for projection
 const double pairpT_RANGES[][2] = {
-  {2.0, 2.5},
-  {2.5, 3.0},
-  {3.0, 3.5},
-  {3.5, 4.0},
+  {2.0, 3.0},
+  {3.0, 4.0},
   {4.0, 5.0},
   {5.0, 7.0},
   {7.0, 9.0},
@@ -124,8 +122,8 @@ int FindClosestBinToThreshold(const std::vector<double>& _value,
   auto iter = std::min_element(_value.begin() + start_index, _value.begin() + end_index,
 			       [threshold](double a, double b) {
 				 return std::abs(a - threshold) < std::abs(b - threshold);
-			  }
-		);
+			       }
+			       );
 
   // return -1 if we do not find any match
   if (iter == _value.begin() + end_index) {return -1;}
@@ -236,15 +234,13 @@ std::vector<double> FindRanges(TH1D* ref_hist_proj, double pairpT) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 TH1D* extrapolateIgnoredBins(TH1D* proj_f, const std::vector<double>& ranges, bool etamode) {
-    
-  // cross-check the size of vector "ranges"
+
   if (ranges.size() != 4) {
-    std::cerr << "Error: ranges vector must contain exactly 4 values!" << std::endl;
+    std::cerr << "Error: 'ranges' vector must contain exactly 4 values!" << std::endl;
+    return nullptr;
   }
-		
-  // getting all values for pi0 and eta meson
+
   double a0 = ranges[0];
   double a1 = ranges[1];
   double a2 = ranges[2];
@@ -252,123 +248,155 @@ TH1D* extrapolateIgnoredBins(TH1D* proj_f, const std::vector<double>& ranges, bo
 
   int TotalBins = proj_f->GetNbinsX();
   int FinalBin = proj_f->FindBin(RANGE_delR_MAX);
-		
-  // getting bin-numbers for fitting and ignoring for peak(s)
-  // while fitting we will set to bins (we ignore) to zero with very high error and use all fitting range to fit
+
   int ignoreStartBin, ignoreEndBin, fitStartBin, fitEndBin;
 
   if (etamode) {
     ignoreStartBin = proj_f->FindBin(a2);
     ignoreEndBin = proj_f->FindBin(a3);
-    
-    fitStartBin = ignoreStartBin-2; // No fitting before a1 in eta mode
-    fitEndBin = ignoreEndBin+10; // we can adjust that to few bins before if we need in eta mode
-    
-    //fitEndBin = std::min(ignoreEndBin + 5, FinalBin-5); // we can adjust that to few bins before if we need in eta mode
-    //fitStartBin = std::max(proj_f->FindBin(a1)+5, ignoreStartBin-3); // No fitting before a1 in eta mode
-  
-  } 
-  else {
+    fitStartBin = ignoreEndBin - 15;
+    fitEndBin = FinalBin-20;
+  } else {
     ignoreStartBin = proj_f->FindBin(a0);
     ignoreEndBin = proj_f->FindBin(a1);
-    
-    fitStartBin = std::max(3, proj_f->FindBin(a0) - 5); // leave 5 bins before a0, if possible otherwise take only 2 at least
+    fitStartBin = std::max(3, proj_f->FindBin(a0) - 5);
     fitEndBin = proj_f->FindBin(a2);
   }
 
-  // starting point for fitting
-  const int n_pol = 3;
-  TF1* polFits[n_pol];
-  double bestRMSE = 1e30;
-  TF1* bestPolFit = nullptr;
-
   double fitMinX = proj_f->GetBinCenter(fitStartBin);
   double fitMaxX = proj_f->GetBinCenter(fitEndBin);
+  double etaCenterX = proj_f->GetBinCenter((ignoreStartBin + ignoreEndBin) / 2.0);
 
+  const int max_pol_order = 2;
+  TRandom3 randGen(0);
 
-// After or before the polynomial fitting loop
+  TF1* bestLeftFit = nullptr;
+  TF1* bestRightFit = nullptr;
+  double bestLeftAIC = 1e30;
+  double bestRightAIC = 1e30;
+  int bestLeftOrder = -1;
+  int bestRightOrder = -1;
 
-TF1* expFit = new TF1("expFit", "[0]*exp([1]*x)", fitMinX, fitMaxX); // simple 2-param exponential
-TH1D* fitHistExp = (TH1D*)proj_f->Clone(); // clone for exponential fitting
-
-for (int j = 1; j <= TotalBins; ++j) {
-  if (j >= ignoreStartBin && j <= ignoreEndBin) {
-    fitHistExp->SetBinContent(j, 0);
-    fitHistExp->SetBinError(j, 1e20);
-  }
-}
-
-// Fit with exponential
-fitHistExp->Fit(expFit, "RQ", "", fitMinX, fitMaxX);
-
-double rmseExp = calculateRMSE(fitHistExp, expFit, ignoreStartBin, ignoreEndBin, fitStartBin, fitEndBin);
-
-// Compare with best so far
-if (rmseExp < bestRMSE) {
-  bestRMSE = rmseExp;
-  bestPolFit = expFit; // now best fit could be the exponential!
-}
-
-
-
-  // testing with multiple polynomials
-  for (int i = 0; i < n_pol; ++i) {
-    polFits[i] = new TF1(Form("pol%d", i), Form("pol%d", i), fitMinX, fitMaxX);
-    TH1D* fitHist = (TH1D*)proj_f->Clone();
-
+  // Helper to count points and total content in a fit range
+  auto hasGoodData = [&](double xMin, double xMax) {
+    double sum = 0;
+    int count = 0;
     for (int j = 1; j <= TotalBins; ++j) {
-      if (j >= ignoreStartBin && j <= ignoreEndBin) {
-				fitHist->SetBinContent(j, 0);
-				fitHist->SetBinError(j, 1e20);
+      double x = proj_f->GetBinCenter(j);
+      if (x >= xMin && x <= xMax) {
+        sum += proj_f->GetBinContent(j);
+        count++;
+      }
+    }
+    return (sum > 0) && (count >= 5); // at least 5 bins with some data
+  };
+
+  // Check left and right side data
+  if (!hasGoodData(fitMinX, etaCenterX) || !hasGoodData(etaCenterX, fitMaxX)) {
+    std::cerr << "Error: Insufficient data for fitting left or right side!" << std::endl;
+    return proj_f;
+  }
+
+  // ==================== Left side fitting ====================
+  for (int n = 0; n <= max_pol_order; ++n) {
+    std::string funcStr = Form("pol%d", n);
+    TF1* fitFunc = new TF1(Form("left_pol%d", n), funcStr.c_str(), fitMinX, etaCenterX);
+
+    TH1D* fitHist = (TH1D*)proj_f->Clone(Form("fitHist_left_pol%d", n));
+    for (int j = 1; j <= TotalBins; ++j) {
+      double x = proj_f->GetBinCenter(j);
+      if (x >= a2 && x <= a3 || x >= etaCenterX) {
+        fitHist->SetBinContent(j, 0);
+        fitHist->SetBinError(j, 1e20);
       }
     }
 
-    
-      fitHist->Fit(polFits[i], "RQ", "", fitMinX, fitMaxX);
-      double rmse = calculateRMSE(fitHist, polFits[i], ignoreStartBin, ignoreEndBin, fitStartBin, fitEndBin);
-		
-
-      if (rmse < bestRMSE) {
-      bestRMSE = rmse;
-      bestPolFit = polFits[i];
-      }
-
-			/*
-      TFitResultPtr r = fitHist->Fit(polFits[i], "SQN", "", fitMinX, fitMaxX);
-      double chi2 = r->Chi2();
-      double ndf = r->Ndf();
-      double rmse = (ndf>0 ? chi2/ndf : 1e30);
-			*/
-
-    
-/*
-    // this is the line that does the fitting
-    fitHist->Fit(polFits[i], "RQ", "", fitMinX, fitMaxX);
-        
-    // chi2 check to select which polynomial is better
-    double chi2NDF = polFits[i]->GetChisquare() / polFits[i]->GetNDF();
-    if (chi2NDF < bestRMSE) {
-      bestRMSE = chi2NDF;
-      bestPolFit = polFits[i];
+    int fitStatus = fitHist->Fit(fitFunc, "RQ0", "", fitMinX, etaCenterX);
+    if (fitStatus != 0) {
+      delete fitFunc;
+      delete fitHist;
+      continue;
     }
-		*/
 
+    double chi2 = fitFunc->GetChisquare();
+    double ndf = fitFunc->GetNDF();
+    int k = fitFunc->GetNpar();
 
+    double aic = chi2 + 2 * k;
+
+    if (aic < bestLeftAIC) {
+      if (bestLeftFit) delete bestLeftFit;
+      bestLeftFit = (TF1*)fitFunc->Clone();
+      bestLeftAIC = aic;
+      bestLeftOrder = n;
+    }
+
+    delete fitFunc;
     delete fitHist;
   }
 
-  // this is to add random fluctuations to make extrapolation look more natural
-  // this is to take noise outside of fitting range so that we do not have any artificially good looking extrapolation
-  // normally there is not high fluctualtion effect in our data due to this
-  
+  // ==================== Right side fitting ====================
+  for (int n = 0; n <= max_pol_order; ++n) {
+    std::string funcStr = Form("pol%d", n);
+    TF1* fitFunc = new TF1(Form("right_pol%d", n), funcStr.c_str(), etaCenterX, fitMaxX);
 
-  TRandom3 randGen(0); // 0 = ROOT uses automatically the best random seed
+    TH1D* fitHist = (TH1D*)proj_f->Clone(Form("fitHist_right_pol%d", n));
+    for (int j = 1; j <= TotalBins; ++j) {
+      double x = proj_f->GetBinCenter(j);
+      if (x >= a2 && x <= a3 || x <= etaCenterX) {
+        fitHist->SetBinContent(j, 0);
+        fitHist->SetBinError(j, 1e20);
+      }
+    }
+
+    int fitStatus = fitHist->Fit(fitFunc, "RQ0", "", etaCenterX, fitMaxX);
+    if (fitStatus != 0) {
+      delete fitFunc;
+      delete fitHist;
+      continue;
+    }
+
+    double chi2 = fitFunc->GetChisquare();
+    double ndf = fitFunc->GetNDF();
+    int k = fitFunc->GetNpar();
+
+    double aic = chi2 + 2 * k;
+
+    if (aic < bestRightAIC) {
+      if (bestRightFit) delete bestRightFit;
+      bestRightFit = (TF1*)fitFunc->Clone();
+      bestRightAIC = aic;
+      bestRightOrder = n;
+    }
+
+    delete fitFunc;
+    delete fitHist;
+  }
+
+  if (!bestLeftFit || !bestRightFit) {
+    std::cerr << "No valid left or right fit found!" << std::endl;
+    return proj_f;
+  }
+
+  std::cout << "Selected left fit: pol" << bestLeftOrder 
+            << ", right fit: pol" << bestRightOrder << std::endl;
+
+  // ================== Extrapolate over ignored bins ====================
+
   std::vector<double> residuals;
-	
+
   for (int i = ignoreEndBin + 5; i < FinalBin; ++i) {
+    double x = proj_f->GetBinCenter(i);
     double observed = proj_f->GetBinContent(i);
-    double expected = bestPolFit->Eval(proj_f->GetBinCenter(i));
+    double expected = (x < etaCenterX) ? bestLeftFit->Eval(x) : bestRightFit->Eval(x);
     residuals.push_back(observed - expected);
+  }
+
+  if (residuals.empty()) {
+    std::cerr << "Warning: No residuals available!" << std::endl;
+    delete bestLeftFit;
+    delete bestRightFit;
+    return proj_f;
   }
 
   double mean = 0, sq_sum = 0;
@@ -379,21 +407,24 @@ if (rmseExp < bestRMSE) {
   mean /= residuals.size();
   double stdev = std::sqrt(sq_sum / residuals.size() - mean * mean);
 
+  if (stdev <= 0 || std::isnan(stdev)) stdev = 1e-5;
+
   for (int j = ignoreStartBin; j <= ignoreEndBin; ++j) {
     double x = proj_f->GetBinCenter(j);
-    double value = bestPolFit->Eval(x);
+    double value = (x < etaCenterX) ? bestLeftFit->Eval(x) : bestRightFit->Eval(x);
     double fluctuated = randGen.Gaus(value, stdev / std::sqrt(residuals.size()));
     proj_f->SetBinContent(j, fluctuated < 0 ? 0 : fluctuated);
-    //proj_f->SetBinContent(j, 0);
   }
 
-  for (int i = 0; i < n_pol; ++i) delete polFits[i];
+  delete bestLeftFit;
+  delete bestRightFit;
+
   return proj_f;
 }
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Now we are trying to apply weights to get things done
 TH2F* ApplyWeightInvMass(TH1D* delR_proj_m, TH1D* delR_proj_b, TH2F* mass_delR_b){
@@ -408,8 +439,8 @@ TH2F* ApplyWeightInvMass(TH1D* delR_proj_m, TH1D* delR_proj_b, TH2F* mass_delR_b
   TH2F* w_mass_delR_b = (TH2F*)mass_delR_b->Clone("w_mass_delR_b");
 
   // now divide modified signal by background (delR_proj_m by delR_proj_b) for weight
-	TH1D* weight_hist = (TH1D*)delR_proj_m->Clone("weight_hist");
-	weight_hist->Divide(delR_proj_b);
+  TH1D* weight_hist = (TH1D*)delR_proj_m->Clone("weight_hist");
+  weight_hist->Divide(delR_proj_b);
 
   // Loop over the x and y-axis in 2D inv mass hist
   int _bindelR = w_mass_delR_b->GetNbinsX();
@@ -528,10 +559,10 @@ void HistBothRangeV2() {
     //TH2F* mass_delR_f1 = (TH2F*)masshist_f->Project3D("xz");
     //TH2F* mass_delR_b1 = (TH2F*)masshist_b->Project3D("xz");
 
-		//std::cout << "Before set-range = " << mass_delR_f1->Integral() << " , " << mass_delR_b1->Integral() << std::endl; 
+    //std::cout << "Before set-range = " << mass_delR_f1->Integral() << " , " << mass_delR_b1->Integral() << std::endl; 
 
     // Process mass histograms, this seems to be working
-		// may be work on SetRangeUser() stuff
+    // may be work on SetRangeUser() stuff
     masshist_f->GetYaxis()->SetRangeUser(pT_min, pT_max);
     masshist_b->GetYaxis()->SetRangeUser(pT_min, pT_max);
 				
@@ -539,9 +570,9 @@ void HistBothRangeV2() {
     TH2F* mass_delR_f = (TH2F*)masshist_f->Project3D("xz");
     TH2F* mass_delR_b = (TH2F*)masshist_b->Project3D("xz");
 			
-		//std::cout << "After set-range = " << mass_delR_f->Integral() << " , " << mass_delR_b->Integral() << std::endl; 
+    //std::cout << "After set-range = " << mass_delR_f->Integral() << " , " << mass_delR_b->Integral() << std::endl; 
     
-		// removing projection in y-axis, setting that free
+    // removing projection in y-axis, setting that free
     masshist_f->GetYaxis()->SetRange();
     masshist_b->GetYaxis()->SetRange();
 
