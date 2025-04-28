@@ -6,7 +6,7 @@
 #include <vector>
 #include <iostream>
 
-void ProjectPtHistogram(bool doProjectPt = true, bool doProjectEta = false)
+void ProjectPtEtaHistograms(bool doProjectPt = true, bool doProjectEta = false)
 {
     const std::string input_file = "combined.root";
     const std::string output_file = "proj_" + input_file;
